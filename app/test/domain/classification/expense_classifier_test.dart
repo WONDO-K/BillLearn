@@ -83,4 +83,39 @@ void main() {
     expect(result.requiresReview, isTrue);
     expect(result.isExpense, isFalse);
   });
+
+  test('excludes wallet and local currency top-up as non-spending', () {
+    final result = classifier.classify(
+      candidates: [
+        candidate(
+          id: '1',
+          amount: 5000,
+          merchantName: '동백전 충전',
+          occurredAt: DateTime(2026, 5, 14, 12, 30),
+        ),
+      ],
+      rawTexts: const ['동백전 충전 5,000원'],
+    );
+
+    expect(result.isTransferLike, isTrue);
+    expect(result.isExpense, isFalse);
+    expect(result.reasonCodes, contains('stored_value_top_up'));
+  });
+
+  test('keeps charging station payment as real spending', () {
+    final result = classifier.classify(
+      candidates: [
+        candidate(
+          id: '1',
+          amount: 12000,
+          merchantName: '전기차충전소',
+          occurredAt: DateTime(2026, 5, 14, 12, 30),
+        ),
+      ],
+      rawTexts: const ['[승인] 12,000원 전기차충전소'],
+    );
+
+    expect(result.isTransferLike, isFalse);
+    expect(result.isExpense, isTrue);
+  });
 }

@@ -163,4 +163,29 @@ void main() {
       await repository.dispose();
     },
   );
+
+  test('keeps charging station payment despite charging keyword', () async {
+    final repository = InMemoryExpenseRepository();
+    final useCase = ProcessRawNotification(repository: repository);
+    final raw = RawNotification(
+      id: 'ev-1',
+      sourceType: RawNotificationSourceType.push,
+      sourceApp: 'com.card',
+      sender: null,
+      title: '카드 승인',
+      body: '[신한카드 승인] 12,000원 전기차충전소 05/14 12:30',
+      receivedAt: DateTime(2026, 5, 14, 12, 30),
+      sourceHash: 'hash-ev-1',
+      createdAt: DateTime(2026, 5, 14, 12, 30),
+    );
+
+    await useCase(raw);
+
+    final expenses = await repository.watchExpenses().first;
+    expect(expenses, hasLength(1));
+    expect(expenses.single.merchantName, '전기차충전소');
+    expect(expenses.single.amount, 12000);
+
+    await repository.dispose();
+  });
 }
