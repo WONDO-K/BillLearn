@@ -29,18 +29,6 @@ class ProcessRawNotification {
       return;
     }
 
-    final existingExpenses = await repository.getExpenses();
-    final hasDuplicate = existingExpenses.any((expense) {
-      final sameAmount = expense.amount == candidate.amount;
-      final sameMerchant = expense.merchantName == candidate.merchantName;
-      final closeTime =
-          expense.spentAt.difference(candidate.occurredAt).abs().inMinutes <= 5;
-      return sameAmount && sameMerchant && closeTime;
-    });
-    if (hasDuplicate) {
-      return;
-    }
-
     final now = DateTime.now();
     await repository.saveExpense(
       ExpenseTransaction(
