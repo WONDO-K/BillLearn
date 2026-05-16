@@ -23,8 +23,20 @@ final expensesProvider = StreamProvider<List<ExpenseTransaction>>((ref) {
   return ref.watch(expenseRepositoryProvider).watchExpenses();
 });
 
+final androidEventBridgeProvider = Provider<AndroidEventBridge>((ref) {
+  return AndroidEventBridge();
+});
+
 final rawNotificationStreamProvider = Provider<Stream<RawNotification>>((ref) {
-  return AndroidEventBridge().watchRawNotifications();
+  return ref.watch(androidEventBridgeProvider).watchRawNotifications();
+});
+
+final notificationAccessEnabledProvider = FutureProvider<bool>((ref) {
+  return ref.watch(androidEventBridgeProvider).isNotificationAccessEnabled();
+});
+
+final smsPermissionGrantedProvider = FutureProvider<bool>((ref) {
+  return ref.watch(androidEventBridgeProvider).isSmsPermissionGranted();
 });
 
 final processRawNotificationProvider = Provider<ProcessRawNotification>((ref) {

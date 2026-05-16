@@ -24,6 +24,16 @@ class AndroidEventBridge {
     await methodChannel.invokeMethod<void>('openNotificationAccessSettings');
   }
 
+  Future<bool> isSmsPermissionGranted() async {
+    return await methodChannel.invokeMethod<bool>('isSmsPermissionGranted') ??
+        false;
+  }
+
+  Future<bool> requestSmsPermission() async {
+    return await methodChannel.invokeMethod<bool>('requestSmsPermission') ??
+        false;
+  }
+
   static RawNotification rawNotificationFromPayload(
     Map<String, Object?> payload,
   ) {
