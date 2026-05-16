@@ -60,19 +60,14 @@ class LocalExpenseRepository implements ExpenseRepository {
   @override
   Future<void> saveExpense(ExpenseTransaction expense) {
     return _database.saveExpenseTransactionRow(
-      ExpenseTransactionsCompanion.insert(
-        id: expense.id,
-        amount: expense.amount,
-        merchantName: expense.merchantName,
-        categoryId: Value(expense.categoryId),
-        spentAt: expense.spentAt,
-        confirmationStatus: expense.confirmationStatus.name,
-        confirmedBy: expense.confirmedBy.name,
-        candidateIdsJson: jsonEncode(expense.candidateIds),
-        createdAt: expense.createdAt,
-        updatedAt: expense.updatedAt,
-        syncStatus: expense.syncStatus.name,
-      ),
+      _expenseTransactionCompanion(expense),
+    );
+  }
+
+  @override
+  Future<void> updateExpense(ExpenseTransaction expense) {
+    return _database.saveExpenseTransactionRow(
+      _expenseTransactionCompanion(expense),
     );
   }
 
@@ -106,6 +101,24 @@ class LocalExpenseRepository implements ExpenseRepository {
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
       syncStatus: SyncStatus.values.byName(row.syncStatus),
+    );
+  }
+
+  ExpenseTransactionsCompanion _expenseTransactionCompanion(
+    ExpenseTransaction expense,
+  ) {
+    return ExpenseTransactionsCompanion.insert(
+      id: expense.id,
+      amount: expense.amount,
+      merchantName: expense.merchantName,
+      categoryId: Value(expense.categoryId),
+      spentAt: expense.spentAt,
+      confirmationStatus: expense.confirmationStatus.name,
+      confirmedBy: expense.confirmedBy.name,
+      candidateIdsJson: jsonEncode(expense.candidateIds),
+      createdAt: expense.createdAt,
+      updatedAt: expense.updatedAt,
+      syncStatus: expense.syncStatus.name,
     );
   }
 }

@@ -13,4 +13,6 @@ abstract interface class ExpenseRepository {
   Future<void> saveRawNotification(RawNotification rawNotification);
 
   Future<void> saveExpense(ExpenseTransaction expense);
+
+  Future<void> updateExpense(ExpenseTransaction expense);
 }

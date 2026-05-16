@@ -67,6 +67,8 @@ class _TransactionDetailContent extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
+        _FeedbackActions(expense: expense),
+        const SizedBox(height: 16),
         Card(
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -117,6 +119,44 @@ class _TransactionDetailContent extends StatelessWidget {
       SyncStatus.synced => '동기화됨',
       SyncStatus.conflict => '충돌',
     };
+  }
+}
+
+class _FeedbackActions extends ConsumerWidget {
+  const _FeedbackActions({required this.expense});
+
+  final ExpenseTransaction expense;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            onPressed: () => _updateStatus(ref, ConfirmationStatus.rejected),
+            child: const Text('아니요'),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: FilledButton(
+            onPressed: () => _updateStatus(ref, ConfirmationStatus.confirmed),
+            child: const Text('맞아요'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _updateStatus(WidgetRef ref, ConfirmationStatus status) async {
+    final updated = expense.copyWith(
+      confirmationStatus: status,
+      confirmedBy: ConfirmedBy.user,
+      updatedAt: DateTime.now(),
+    );
+    await ref.read(expenseRepositoryProvider).updateExpense(updated);
+    ref.invalidate(expenseByIdProvider(expense.id));
+    ref.invalidate(expensesProvider);
   }
 }
 

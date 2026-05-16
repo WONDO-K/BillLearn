@@ -61,6 +61,17 @@ void main() {
     expect(expenseSnapshot, hasLength(1));
     expect(expenseSnapshot.single.id, expense.id);
 
+    await repository.updateExpense(
+      expense.copyWith(
+        confirmationStatus: ConfirmationStatus.rejected,
+        confirmedBy: ConfirmedBy.user,
+        updatedAt: DateTime(2026, 5, 14, 12, 33),
+      ),
+    );
+    final updatedExpense = await repository.getExpenseById(expense.id);
+    expect(updatedExpense?.confirmationStatus, ConfirmationStatus.rejected);
+    expect(updatedExpense?.confirmedBy, ConfirmedBy.user);
+
     await database.close();
   });
 }

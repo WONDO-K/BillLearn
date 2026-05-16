@@ -42,4 +42,45 @@ void main() {
 
     await repository.dispose();
   });
+
+  testWidgets('rejects expense when user says it is not spending', (
+    tester,
+  ) async {
+    final repository = InMemoryExpenseRepository();
+    await repository.saveExpense(
+      ExpenseTransaction(
+        id: 'expense-1',
+        amount: 5000,
+        merchantName: '동백전 충전',
+        categoryId: null,
+        spentAt: DateTime(2026, 5, 14, 12),
+        confirmationStatus: ConfirmationStatus.needsReview,
+        confirmedBy: ConfirmedBy.rule,
+        candidateIds: const ['candidate-1'],
+        createdAt: DateTime(2026, 5, 14, 12, 1),
+        updatedAt: DateTime(2026, 5, 14, 12, 1),
+        syncStatus: SyncStatus.localOnly,
+      ),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [expenseRepositoryProvider.overrideWithValue(repository)],
+        child: const MaterialApp(
+          home: TransactionDetailScreen(transactionId: 'expense-1'),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.text('아니요'));
+    await tester.pumpAndSettle();
+
+    final expense = await repository.getExpenseById('expense-1');
+    expect(expense?.confirmationStatus, ConfirmationStatus.rejected);
+    expect(expense?.confirmedBy, ConfirmedBy.user);
+    expect(find.text('제외됨'), findsOneWidget);
+
+    await repository.dispose();
+  });
 }

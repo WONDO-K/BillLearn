@@ -30,4 +30,31 @@ class ExpenseTransaction {
   final DateTime createdAt;
   final DateTime updatedAt;
   final SyncStatus syncStatus;
+
+  ExpenseTransaction copyWith({
+    int? amount,
+    String? merchantName,
+    String? categoryId,
+    DateTime? spentAt,
+    ConfirmationStatus? confirmationStatus,
+    ConfirmedBy? confirmedBy,
+    List<String>? candidateIds,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    SyncStatus? syncStatus,
+  }) {
+    return ExpenseTransaction(
+      id: id,
+      amount: amount ?? this.amount,
+      merchantName: merchantName ?? this.merchantName,
+      categoryId: categoryId ?? this.categoryId,
+      spentAt: spentAt ?? this.spentAt,
+      confirmationStatus: confirmationStatus ?? this.confirmationStatus,
+      confirmedBy: confirmedBy ?? this.confirmedBy,
+      candidateIds: candidateIds ?? this.candidateIds,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      syncStatus: syncStatus ?? this.syncStatus,
+    );
+  }
 }

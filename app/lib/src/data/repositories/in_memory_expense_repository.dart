@@ -51,6 +51,17 @@ class InMemoryExpenseRepository implements ExpenseRepository {
     _expenseController.add(List.unmodifiable(_expenses));
   }
 
+  @override
+  Future<void> updateExpense(ExpenseTransaction expense) async {
+    final index = _expenses.indexWhere((item) => item.id == expense.id);
+    if (index == -1) {
+      _expenses.add(expense);
+    } else {
+      _expenses[index] = expense;
+    }
+    _expenseController.add(List.unmodifiable(_expenses));
+  }
+
   Future<void> dispose() async {
     await _rawController.close();
     await _expenseController.close();
