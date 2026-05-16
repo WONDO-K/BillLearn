@@ -46,4 +46,49 @@ void main() {
     expect(candidate.amount, 0);
     expect(candidate.merchantName, '');
   });
+
+  test('parses simple pay payment notification', () {
+    final raw = RawNotification(
+      id: 'raw-3',
+      sourceType: RawNotificationSourceType.push,
+      sourceApp: 'com.naverpay',
+      sender: null,
+      title: '네이버페이',
+      body: '네이버페이 결제 39,800원 네이버쇼핑 11:32',
+      receivedAt: DateTime(2026, 5, 14, 11, 32),
+      sourceHash: 'hash-3',
+      createdAt: DateTime(2026, 5, 14, 11, 32),
+    );
+
+    final candidate = parser.parse(raw);
+
+    expect(candidate.parseStatus, ParseStatus.parsed);
+    expect(candidate.amount, 39800);
+    expect(candidate.merchantName, '네이버쇼핑');
+    expect(candidate.paymentMethodHint, '네이버페이');
+  });
+
+  test(
+    'parses local currency payment without treating balance as merchant',
+    () {
+      final raw = RawNotification(
+        id: 'raw-4',
+        sourceType: RawNotificationSourceType.push,
+        sourceApp: 'com.dongbaek',
+        sender: null,
+        title: '동백전',
+        body: '동백전 결제 3,400원 CU편의점 잔액 16,600원',
+        receivedAt: DateTime(2026, 5, 14, 12, 10),
+        sourceHash: 'hash-4',
+        createdAt: DateTime(2026, 5, 14, 12, 10),
+      );
+
+      final candidate = parser.parse(raw);
+
+      expect(candidate.parseStatus, ParseStatus.parsed);
+      expect(candidate.amount, 3400);
+      expect(candidate.merchantName, 'CU편의점');
+      expect(candidate.paymentMethodHint, '동백전');
+    },
+  );
 }

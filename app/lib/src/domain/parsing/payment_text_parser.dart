@@ -3,7 +3,7 @@ import 'package:billlearn/src/domain/models/transaction_candidate.dart';
 
 class PaymentTextParser {
   static final _amountPattern = RegExp(r'([\d,]+)\s*원');
-  static final _paymentMethodPattern = RegExp(r'\[?([가-힣A-Za-z]+카드)');
+  static final _paymentMethodPattern = RegExp(r'\[?([가-힣A-Za-z]+(?:카드|페이|전))');
   static final _merchantAfterAmountPattern = RegExp(
     r'[\d,]+\s*원\s+([가-힣A-Za-z0-9&._ -]+)',
   );
@@ -56,6 +56,9 @@ class PaymentTextParser {
 
   String _cleanMerchantName(String value) {
     return value
+        .replaceAll(RegExp(r'\s+잔액.*$'), '')
+        .replaceAll(RegExp(r'\s+승인번호\s+\S+.*$'), '')
+        .replaceAll(RegExp(r'\s+승인\s+\S+.*$'), '')
         .replaceAll(RegExp(r'\s+\d{1,2}/\d{1,2}.*$'), '')
         .replaceAll(RegExp(r'\s+\d{1,2}:\d{2}.*$'), '')
         .replaceAll(RegExp(r'\s+\d{1,2}$'), '')
