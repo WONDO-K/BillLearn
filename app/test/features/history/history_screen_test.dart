@@ -42,6 +42,33 @@ void main() {
 
     await repository.dispose();
   });
+
+  testWidgets('marks rejected expenses as excluded in history', (tester) async {
+    final repository = InMemoryExpenseRepository();
+    await repository.saveExpense(
+      _expense(
+        id: 'expense-1',
+        merchantName: '동백전 충전',
+        amount: 5000,
+        spentAt: DateTime(2026, 5, 14, 12),
+        confirmationStatus: ConfirmationStatus.rejected,
+      ),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [expenseRepositoryProvider.overrideWithValue(repository)],
+        child: const MaterialApp(home: HistoryScreen()),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('동백전 충전'), findsOneWidget);
+    expect(find.text('제외됨'), findsOneWidget);
+    expect(find.text('5,000원'), findsOneWidget);
+
+    await repository.dispose();
+  });
 }
 
 ExpenseTransaction _expense({
@@ -49,6 +76,7 @@ ExpenseTransaction _expense({
   required String merchantName,
   required int amount,
   required DateTime spentAt,
+  ConfirmationStatus confirmationStatus = ConfirmationStatus.confirmed,
 }) {
   return ExpenseTransaction(
     id: id,
@@ -56,7 +84,7 @@ ExpenseTransaction _expense({
     merchantName: merchantName,
     categoryId: null,
     spentAt: spentAt,
-    confirmationStatus: ConfirmationStatus.confirmed,
+    confirmationStatus: confirmationStatus,
     confirmedBy: ConfirmedBy.rule,
     candidateIds: ['candidate-$id'],
     createdAt: spentAt,

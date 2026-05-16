@@ -51,10 +51,31 @@ class _HistoryContent extends StatelessWidget {
             (expense) => Card(
               child: ListTile(
                 title: Text(expense.merchantName),
-                subtitle: Text(_formatDate(expense.spentAt)),
+                subtitle: Row(
+                  children: [
+                    Text(_formatDate(expense.spentAt)),
+                    if (expense.confirmationStatus !=
+                        ConfirmationStatus.confirmed) ...[
+                      const SizedBox(width: 8),
+                      _StatusChip(expense: expense),
+                    ],
+                  ],
+                ),
                 trailing: Text(
                   '${currencyFormat.format(expense.amount)}원',
-                  style: const TextStyle(fontWeight: FontWeight.w700),
+                  style: TextStyle(
+                    color:
+                        expense.confirmationStatus ==
+                            ConfirmationStatus.rejected
+                        ? Colors.black45
+                        : null,
+                    decoration:
+                        expense.confirmationStatus ==
+                            ConfirmationStatus.rejected
+                        ? TextDecoration.lineThrough
+                        : null,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 onTap: () => context.push('/transactions/${expense.id}'),
               ),
@@ -68,5 +89,29 @@ class _HistoryContent extends StatelessWidget {
     final hour = value.hour.toString().padLeft(2, '0');
     final minute = value.minute.toString().padLeft(2, '0');
     return '${value.month}월 ${value.day}일 $hour:$minute';
+  }
+}
+
+class _StatusChip extends StatelessWidget {
+  const _StatusChip({required this.expense});
+
+  final ExpenseTransaction expense;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = switch (expense.confirmationStatus) {
+      ConfirmationStatus.confirmed => '확정됨',
+      ConfirmationStatus.needsReview => '확인 필요',
+      ConfirmationStatus.rejected => '제외됨',
+    };
+
+    return Text(
+      label,
+      style: TextStyle(
+        color: Theme.of(context).colorScheme.primary,
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+      ),
+    );
   }
 }
