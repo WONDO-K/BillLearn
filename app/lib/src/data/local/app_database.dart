@@ -63,6 +63,12 @@ class AppDatabase extends _$AppDatabase {
     return select(expenseTransactions).get();
   }
 
+  Future<ExpenseTransactionRow?> getExpenseTransactionRowById(String id) {
+    return (select(
+      expenseTransactions,
+    )..where((row) => row.id.equals(id))).getSingleOrNull();
+  }
+
   Future<void> saveRawNotificationRow(
     RawNotificationsCompanion rawNotification,
   ) {

@@ -8,6 +8,8 @@ abstract interface class ExpenseRepository {
 
   Future<List<ExpenseTransaction>> getExpenses();
 
+  Future<ExpenseTransaction?> getExpenseById(String id);
+
   Future<void> saveRawNotification(RawNotification rawNotification);
 
   Future<void> saveExpense(ExpenseTransaction expense);

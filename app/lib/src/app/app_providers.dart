@@ -23,6 +23,13 @@ final expensesProvider = StreamProvider<List<ExpenseTransaction>>((ref) {
   return ref.watch(expenseRepositoryProvider).watchExpenses();
 });
 
+final expenseByIdProvider = FutureProvider.family<ExpenseTransaction?, String>((
+  ref,
+  id,
+) {
+  return ref.watch(expenseRepositoryProvider).getExpenseById(id);
+});
+
 final androidEventBridgeProvider = Provider<AndroidEventBridge>((ref) {
   return AndroidEventBridge();
 });
