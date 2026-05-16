@@ -6,6 +6,8 @@ abstract interface class ExpenseRepository {
 
   Stream<List<ExpenseTransaction>> watchExpenses();
 
+  Future<List<ExpenseTransaction>> getExpenses();
+
   Future<void> saveRawNotification(RawNotification rawNotification);
 
   Future<void> saveExpense(ExpenseTransaction expense);

@@ -25,6 +25,11 @@ class InMemoryExpenseRepository implements ExpenseRepository {
   }
 
   @override
+  Future<List<ExpenseTransaction>> getExpenses() async {
+    return List.unmodifiable(_expenses);
+  }
+
+  @override
   Future<void> saveRawNotification(RawNotification rawNotification) async {
     _rawNotifications.add(rawNotification);
     _rawController.add(List.unmodifiable(_rawNotifications));

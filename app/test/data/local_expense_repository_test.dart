@@ -38,6 +38,7 @@ void main() {
 
     final storedRaw = await repository.watchRawNotifications().first;
     final storedExpenses = await repository.watchExpenses().first;
+    final expenseSnapshot = await repository.getExpenses();
 
     expect(storedRaw, hasLength(1));
     expect(storedRaw.single.id, raw.id);
@@ -57,6 +58,8 @@ void main() {
     expect(storedExpenses.single.confirmedBy, expense.confirmedBy);
     expect(storedExpenses.single.candidateIds, expense.candidateIds);
     expect(storedExpenses.single.syncStatus, expense.syncStatus);
+    expect(expenseSnapshot, hasLength(1));
+    expect(expenseSnapshot.single.id, expense.id);
 
     await database.close();
   });

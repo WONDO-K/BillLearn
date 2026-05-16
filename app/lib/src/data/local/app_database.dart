@@ -59,6 +59,10 @@ class AppDatabase extends _$AppDatabase {
     return select(expenseTransactions).watch();
   }
 
+  Future<List<ExpenseTransactionRow>> getExpenseTransactionRows() {
+    return select(expenseTransactions).get();
+  }
+
   Future<void> saveRawNotificationRow(
     RawNotificationsCompanion rawNotification,
   ) {

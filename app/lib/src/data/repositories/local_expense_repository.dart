@@ -26,6 +26,12 @@ class LocalExpenseRepository implements ExpenseRepository {
   }
 
   @override
+  Future<List<ExpenseTransaction>> getExpenses() async {
+    final rows = await _database.getExpenseTransactionRows();
+    return rows.map(_expenseTransactionFromRow).toList(growable: false);
+  }
+
+  @override
   Future<void> saveRawNotification(RawNotification rawNotification) {
     return _database.saveRawNotificationRow(
       RawNotificationsCompanion.insert(
