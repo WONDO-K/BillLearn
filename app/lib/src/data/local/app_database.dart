@@ -55,6 +55,14 @@ class AppDatabase extends _$AppDatabase {
     return select(rawNotifications).watch();
   }
 
+  Future<RawNotificationRow?> getRawNotificationRowBySourceHash(
+    String sourceHash,
+  ) {
+    return (select(
+      rawNotifications,
+    )..where((row) => row.sourceHash.equals(sourceHash))).getSingleOrNull();
+  }
+
   Stream<List<ExpenseTransactionRow>> watchExpenseTransactionRows() {
     return select(expenseTransactions).watch();
   }

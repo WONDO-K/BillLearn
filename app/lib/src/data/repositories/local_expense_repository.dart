@@ -26,6 +26,17 @@ class LocalExpenseRepository implements ExpenseRepository {
   }
 
   @override
+  Future<RawNotification?> getRawNotificationBySourceHash(
+    String sourceHash,
+  ) async {
+    final row = await _database.getRawNotificationRowBySourceHash(sourceHash);
+    if (row == null) {
+      return null;
+    }
+    return _rawNotificationFromRow(row);
+  }
+
+  @override
   Future<List<ExpenseTransaction>> getExpenses() async {
     final rows = await _database.getExpenseTransactionRows();
     return rows.map(_expenseTransactionFromRow).toList(growable: false);

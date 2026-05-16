@@ -72,6 +72,44 @@ void main() {
     await repository.dispose();
   });
 
+  test('ignores exact duplicate raw event with same source hash', () async {
+    final repository = InMemoryExpenseRepository();
+    final useCase = ProcessRawNotification(repository: repository);
+    final firstRaw = RawNotification(
+      id: 'raw-1',
+      sourceType: RawNotificationSourceType.sms,
+      sourceApp: null,
+      sender: '1588-0000',
+      title: null,
+      body: '[신한카드 승인] 12,300원 스타벅스 05/14 12:30',
+      receivedAt: DateTime(2026, 5, 14, 12, 31),
+      sourceHash: 'same-source-hash',
+      createdAt: DateTime(2026, 5, 14, 12, 31),
+    );
+    final redeliveredRaw = RawNotification(
+      id: 'raw-2',
+      sourceType: RawNotificationSourceType.sms,
+      sourceApp: null,
+      sender: '1588-0000',
+      title: null,
+      body: '[신한카드 승인] 12,300원 스타벅스 05/14 12:30',
+      receivedAt: DateTime(2026, 5, 14, 12, 31),
+      sourceHash: 'same-source-hash',
+      createdAt: DateTime(2026, 5, 14, 12, 32),
+    );
+
+    await useCase(firstRaw);
+    await useCase(redeliveredRaw);
+
+    final rawNotifications = await repository.watchRawNotifications().first;
+    final expenses = await repository.watchExpenses().first;
+    expect(rawNotifications, hasLength(1));
+    expect(expenses, hasLength(1));
+    expect(expenses.single.merchantName, '스타벅스');
+
+    await repository.dispose();
+  });
+
   test(
     'excludes local currency top-up and stores only final spending',
     () async {

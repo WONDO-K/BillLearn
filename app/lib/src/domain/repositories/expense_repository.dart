@@ -6,6 +6,8 @@ abstract interface class ExpenseRepository {
 
   Stream<List<ExpenseTransaction>> watchExpenses();
 
+  Future<RawNotification?> getRawNotificationBySourceHash(String sourceHash);
+
   Future<List<ExpenseTransaction>> getExpenses();
 
   Future<ExpenseTransaction?> getExpenseById(String id);

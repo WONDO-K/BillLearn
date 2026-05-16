@@ -37,6 +37,9 @@ void main() {
     await repository.saveExpense(expense);
 
     final storedRaw = await repository.watchRawNotifications().first;
+    final rawBySourceHash = await repository.getRawNotificationBySourceHash(
+      raw.sourceHash,
+    );
     final storedExpenses = await repository.watchExpenses().first;
     final expenseSnapshot = await repository.getExpenses();
 
@@ -45,6 +48,7 @@ void main() {
     expect(storedRaw.single.sourceType, raw.sourceType);
     expect(storedRaw.single.body, raw.body);
     expect(storedRaw.single.sourceHash, raw.sourceHash);
+    expect(rawBySourceHash?.id, raw.id);
 
     expect(storedExpenses, hasLength(1));
     expect(storedExpenses.single.id, expense.id);

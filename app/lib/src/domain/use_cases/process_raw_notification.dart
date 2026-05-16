@@ -17,6 +17,13 @@ class ProcessRawNotification {
   final ExpenseClassifier _classifier;
 
   Future<void> call(RawNotification raw) async {
+    final existingRaw = await repository.getRawNotificationBySourceHash(
+      raw.sourceHash,
+    );
+    if (existingRaw != null) {
+      return;
+    }
+
     await repository.saveRawNotification(raw);
 
     final candidate = _parser.parse(raw);

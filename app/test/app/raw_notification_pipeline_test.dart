@@ -46,17 +46,35 @@ void main() {
         ),
       );
 
-      final rawNotifications = await repository
-          .watchRawNotifications()
-          .firstWhere((items) => items.isNotEmpty);
+      final rawNotification = await _waitForRawNotification(
+        repository,
+        'hash-1',
+      );
       final expenses = await _waitForExpenses(repository);
 
-      expect(rawNotifications.single.id, 'raw-1');
+      expect(rawNotification?.id, 'raw-1');
       expect(expenses.single.merchantName, '스타벅스');
       expect(expenses.single.amount, 12300);
       expect(expenses.single.confirmationStatus, ConfirmationStatus.confirmed);
     },
   );
+}
+
+Future<RawNotification?> _waitForRawNotification(
+  InMemoryExpenseRepository repository,
+  String sourceHash,
+) async {
+  for (var attempt = 0; attempt < 20; attempt += 1) {
+    final rawNotification = await repository.getRawNotificationBySourceHash(
+      sourceHash,
+    );
+    if (rawNotification != null) {
+      return rawNotification;
+    }
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+  }
+
+  return repository.getRawNotificationBySourceHash(sourceHash);
 }
 
 Future<List<ExpenseTransaction>> _waitForExpenses(
