@@ -50,6 +50,26 @@
     "expectedReasonCodes": ["stored_value_top_up"]
   },
   {
+    "name": "card_approval_cancel",
+    "amount": 12300,
+    "merchantName": "스타벅스",
+    "rawTexts": ["[신한카드 승인취소] 12,300원 스타벅스"],
+    "expectedIsExpense": false,
+    "expectedRequiresReview": true,
+    "expectedIsTransferLike": true,
+    "expectedReasonCodes": ["cancellation_or_refund"]
+  },
+  {
+    "name": "simple_pay_refund",
+    "amount": 39800,
+    "merchantName": "네이버쇼핑",
+    "rawTexts": ["네이버페이 환불완료 39,800원 네이버쇼핑"],
+    "expectedIsExpense": false,
+    "expectedRequiresReview": true,
+    "expectedIsTransferLike": true,
+    "expectedReasonCodes": ["cancellation_or_refund"]
+  },
+  {
     "name": "ev_charging_station_payment",
     "amount": 12000,
     "merchantName": "전기차충전소",

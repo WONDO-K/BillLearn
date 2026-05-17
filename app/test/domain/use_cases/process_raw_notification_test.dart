@@ -147,6 +147,34 @@ void main() {
     await repository.dispose();
   });
 
+  test('does not store card approval cancellation as expense', () async {
+    final repository = InMemoryExpenseRepository();
+    final useCase = ProcessRawNotification(repository: repository);
+    final raw = RawNotification(
+      id: 'cancel-1',
+      sourceType: RawNotificationSourceType.sms,
+      sourceApp: null,
+      sender: '1588-0000',
+      title: null,
+      body: '[신한카드 승인취소] 12,300원 스타벅스',
+      receivedAt: DateTime(2026, 5, 14, 12, 45),
+      sourceHash: 'hash-cancel-1',
+      createdAt: DateTime(2026, 5, 14, 12, 45),
+    );
+
+    await useCase(raw);
+
+    final classification = await repository
+        .getClassificationResultByCandidateId('candidate-${raw.id}');
+    final expenses = await repository.watchExpenses().first;
+
+    expect(classification?.isExpense, isFalse);
+    expect(classification?.reasonCodes, contains('cancellation_or_refund'));
+    expect(expenses, isEmpty);
+
+    await repository.dispose();
+  });
+
   test(
     'excludes local currency top-up and stores only final spending',
     () async {

@@ -25,6 +25,16 @@ class ExpenseClassifier {
     '님이',
   ];
 
+  // 승인취소/환불은 지출이 아니라 기존 지출의 반대 이벤트라 별도 회계 처리 전까지 저장하지 않습니다.
+  static const _cancellationOrRefundKeywords = [
+    '승인취소',
+    '결제취소',
+    '취소완료',
+    '환불',
+    '환불완료',
+    '매출취소',
+  ];
+
   // 선불/지역화폐 충전은 지출의 원천 이동일 뿐, 최종 소비가 아니므로 별도 제외합니다.
   static const _storedValueTopUpKeywords = [
     '동백전 충전',
@@ -46,9 +56,13 @@ class ExpenseClassifier {
       joinedText.contains,
     );
     final hasBankTransferPhrase = _bankTransferPhrases.any(joinedText.contains);
+    final isCancellationOrRefund = _cancellationOrRefundKeywords.any(
+      joinedText.contains,
+    );
     final isTransferLike =
         isStoredValueTopUp ||
         hasBankTransferPhrase ||
+        isCancellationOrRefund ||
         _transferKeywords.any(joinedText.contains);
     final isDuplicate = _hasDuplicateSignal(candidates);
     final hasStableCandidate = candidates.any(
@@ -71,6 +85,7 @@ class ExpenseClassifier {
         if (isDuplicate) 'duplicate_candidate_group',
         if (isTransferLike) 'transfer_like_keyword',
         if (hasBankTransferPhrase) 'bank_transfer_phrase',
+        if (isCancellationOrRefund) 'cancellation_or_refund',
         if (isStoredValueTopUp) 'stored_value_top_up',
         if (isExpense) 'stable_payment_signal',
         if (!hasStableCandidate) 'weak_parse_signal',
