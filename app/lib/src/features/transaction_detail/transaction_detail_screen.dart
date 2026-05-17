@@ -1,5 +1,7 @@
 import 'package:billlearn/src/app/app_providers.dart';
+import 'package:billlearn/src/domain/models/classification_result.dart';
 import 'package:billlearn/src/domain/models/expense_transaction.dart';
+import 'package:billlearn/src/domain/models/transaction_candidate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -69,23 +71,7 @@ class _TransactionDetailContent extends StatelessWidget {
         const SizedBox(height: 16),
         _FeedbackActions(expense: expense),
         const SizedBox(height: 16),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  '연결된 후보',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 8),
-                for (final candidateId in expense.candidateIds)
-                  Text(candidateId),
-              ],
-            ),
-          ),
-        ),
+        _ClassificationEvidenceCard(candidateIds: expense.candidateIds),
       ],
     );
   }
@@ -119,6 +105,206 @@ class _TransactionDetailContent extends StatelessWidget {
       SyncStatus.synced => '동기화됨',
       SyncStatus.conflict => '충돌',
     };
+  }
+}
+
+class _ClassificationEvidenceCard extends StatelessWidget {
+  const _ClassificationEvidenceCard({required this.candidateIds});
+
+  final List<String> candidateIds;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '판별 근거',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 12),
+            if (candidateIds.isEmpty)
+              const Text('연결된 후보가 없습니다')
+            else
+              for (final candidateId in candidateIds) ...[
+                _CandidateEvidence(candidateId: candidateId),
+                if (candidateId != candidateIds.last) const Divider(height: 24),
+              ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CandidateEvidence extends ConsumerWidget {
+  const _CandidateEvidence({required this.candidateId});
+
+  final String candidateId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final candidate = ref.watch(transactionCandidateByIdProvider(candidateId));
+    final classification = ref.watch(
+      classificationResultByCandidateIdProvider(candidateId),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '후보: $candidateId',
+          style: const TextStyle(fontWeight: FontWeight.w700),
+        ),
+        const SizedBox(height: 8),
+        candidate.when(
+          data: (item) {
+            if (item == null) {
+              return const Text('후보 정보를 찾을 수 없습니다');
+            }
+            return _CandidateSummary(candidate: item);
+          },
+          loading: () => const Text('후보 정보를 불러오는 중입니다'),
+          error: (error, stackTrace) => const Text('후보 정보를 불러오지 못했어요'),
+        ),
+        const SizedBox(height: 8),
+        classification.when(
+          data: (item) {
+            if (item == null) {
+              return const Text('판별 결과를 찾을 수 없습니다');
+            }
+            return _ClassificationSummary(classification: item);
+          },
+          loading: () => const Text('판별 결과를 불러오는 중입니다'),
+          error: (error, stackTrace) => const Text('판별 결과를 불러오지 못했어요'),
+        ),
+      ],
+    );
+  }
+}
+
+class _CandidateSummary extends StatelessWidget {
+  const _CandidateSummary({required this.candidate});
+
+  final TransactionCandidate candidate;
+
+  @override
+  Widget build(BuildContext context) {
+    final currencyFormat = NumberFormat.decimalPattern('ko_KR');
+
+    return Column(
+      children: [
+        _DetailRow(label: '가맹점', value: candidate.merchantName),
+        _DetailRow(
+          label: '금액',
+          value: '${currencyFormat.format(candidate.amount)}원',
+        ),
+        _DetailRow(
+          label: '결제 수단',
+          value: candidate.paymentMethodHint ?? '알 수 없음',
+        ),
+        _DetailRow(
+          label: '파싱 상태',
+          value:
+              '${_parseStatusText(candidate.parseStatus)} · '
+              '${_percentText(candidate.parseConfidence)}',
+        ),
+      ],
+    );
+  }
+
+  String _parseStatusText(ParseStatus status) {
+    return switch (status) {
+      ParseStatus.parsed => '파싱됨',
+      ParseStatus.unsupported => '미지원',
+      ParseStatus.failed => '실패',
+    };
+  }
+
+  String _percentText(double value) {
+    return '${(value * 100).round()}%';
+  }
+}
+
+class _ClassificationSummary extends StatelessWidget {
+  const _ClassificationSummary({required this.classification});
+
+  final ClassificationResult classification;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _EvidenceChip(label: classification.isExpense ? '실제 지출' : '지출 제외'),
+            _EvidenceChip(
+              label: classification.isDuplicate ? '중복 의심' : '중복 아님',
+            ),
+            _EvidenceChip(
+              label: classification.isTransferLike ? '이체/충전 의심' : '이체/충전 아님',
+            ),
+            _EvidenceChip(
+              label: classification.requiresReview ? '검토 필요' : '검토 불필요',
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Text(
+          '신뢰도 ${(classification.confidence * 100).round()}%',
+          style: const TextStyle(fontWeight: FontWeight.w700),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final reasonCode in classification.reasonCodes)
+              _ReasonCode(label: reasonCode),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _EvidenceChip extends StatelessWidget {
+  const _EvidenceChip({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Chip(label: Text(label), visualDensity: VisualDensity.compact);
+  }
+}
+
+class _ReasonCode extends StatelessWidget {
+  const _ReasonCode({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFFEDE9FF),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        child: Text(
+          label,
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+        ),
+      ),
+    );
   }
 }
 

@@ -18,6 +18,8 @@ abstract interface class ExpenseRepository {
     String rawNotificationId,
   );
 
+  Future<TransactionCandidate?> getTransactionCandidateById(String id);
+
   Future<ClassificationResult?> getClassificationResultByCandidateId(
     String candidateId,
   );

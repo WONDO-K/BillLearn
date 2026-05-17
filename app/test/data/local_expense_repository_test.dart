@@ -73,6 +73,9 @@ void main() {
     final storedCandidates = await repository.getCandidatesForRawNotification(
       raw.id,
     );
+    final storedCandidateById = await repository.getTransactionCandidateById(
+      candidate.id,
+    );
     final storedClassification = await repository
         .getClassificationResultByCandidateId(candidate.id);
 
@@ -87,6 +90,12 @@ void main() {
     expect(storedCandidates.single.amount, candidate.amount);
     expect(storedCandidates.single.merchantName, candidate.merchantName);
     expect(storedCandidates.single.parseStatus, candidate.parseStatus);
+    expect(storedCandidateById?.id, candidate.id);
+    expect(storedCandidateById?.paymentMethodHint, candidate.paymentMethodHint);
+    expect(
+      await repository.getTransactionCandidateById('missing-candidate'),
+      isNull,
+    );
     expect(storedClassification?.id, classification.id);
     expect(storedClassification?.candidateIds, classification.candidateIds);
     expect(storedClassification?.reasonCodes, classification.reasonCodes);

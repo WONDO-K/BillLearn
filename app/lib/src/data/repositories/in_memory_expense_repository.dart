@@ -67,6 +67,16 @@ class InMemoryExpenseRepository implements ExpenseRepository {
   }
 
   @override
+  Future<TransactionCandidate?> getTransactionCandidateById(String id) async {
+    for (final candidate in _candidates) {
+      if (candidate.id == id) {
+        return candidate;
+      }
+    }
+    return null;
+  }
+
+  @override
   Future<ClassificationResult?> getClassificationResultByCandidateId(
     String candidateId,
   ) async {

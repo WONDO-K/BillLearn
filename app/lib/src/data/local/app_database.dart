@@ -126,6 +126,12 @@ class AppDatabase extends _$AppDatabase {
     )..where((row) => row.rawNotificationId.equals(rawNotificationId))).get();
   }
 
+  Future<TransactionCandidateRow?> getTransactionCandidateRowById(String id) {
+    return (select(
+      transactionCandidates,
+    )..where((row) => row.id.equals(id))).getSingleOrNull();
+  }
+
   Future<ClassificationResultRow?> getClassificationResultRowByCandidateId(
     String candidateId,
   ) {

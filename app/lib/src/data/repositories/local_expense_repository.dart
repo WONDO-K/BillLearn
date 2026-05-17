@@ -64,6 +64,15 @@ class LocalExpenseRepository implements ExpenseRepository {
   }
 
   @override
+  Future<TransactionCandidate?> getTransactionCandidateById(String id) async {
+    final row = await _database.getTransactionCandidateRowById(id);
+    if (row == null) {
+      return null;
+    }
+    return _transactionCandidateFromRow(row);
+  }
+
+  @override
   Future<ClassificationResult?> getClassificationResultByCandidateId(
     String candidateId,
   ) async {
