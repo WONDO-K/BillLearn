@@ -51,14 +51,25 @@ class _HistoryContent extends StatelessWidget {
             (expense) => Card(
               child: ListTile(
                 title: Text(expense.merchantName),
-                subtitle: Row(
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(_formatDate(expense.spentAt)),
-                    if (expense.confirmationStatus !=
-                        ConfirmationStatus.confirmed) ...[
-                      const SizedBox(width: 8),
-                      _StatusChip(expense: expense),
-                    ],
+                    Row(
+                      children: [
+                        Text(_formatDate(expense.spentAt)),
+                        if (expense.confirmationStatus !=
+                            ConfirmationStatus.confirmed) ...[
+                          const SizedBox(width: 8),
+                          _StatusChip(expense: expense),
+                        ],
+                      ],
+                    ),
+                    if (expense.confirmationStatus ==
+                        ConfirmationStatus.needsReview)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 4),
+                        child: Text('실제 지출인지 확인해주세요'),
+                      ),
                   ],
                 ),
                 trailing: Text(

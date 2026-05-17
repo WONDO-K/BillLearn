@@ -69,6 +69,33 @@ void main() {
 
     await repository.dispose();
   });
+
+  testWidgets('explains needs review expenses in history', (tester) async {
+    final repository = InMemoryExpenseRepository();
+    await repository.saveExpense(
+      _expense(
+        id: 'expense-1',
+        merchantName: '계좌이체 의심',
+        amount: 5000,
+        spentAt: DateTime(2026, 5, 14, 12),
+        confirmationStatus: ConfirmationStatus.needsReview,
+      ),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [expenseRepositoryProvider.overrideWithValue(repository)],
+        child: const MaterialApp(home: HistoryScreen()),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('계좌이체 의심'), findsOneWidget);
+    expect(find.text('확인 필요'), findsOneWidget);
+    expect(find.text('실제 지출인지 확인해주세요'), findsOneWidget);
+
+    await repository.dispose();
+  });
 }
 
 ExpenseTransaction _expense({

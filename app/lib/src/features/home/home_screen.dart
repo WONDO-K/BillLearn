@@ -2,6 +2,7 @@ import 'package:billlearn/src/app/app_providers.dart';
 import 'package:billlearn/src/domain/models/expense_transaction.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -91,7 +92,14 @@ class _HomeContent extends StatelessWidget {
             (expense) => Card(
               child: ListTile(
                 title: Text(expense.merchantName),
-                subtitle: Text('${currencyFormat.format(expense.amount)}원'),
+                subtitle: Text(
+                  '${currencyFormat.format(expense.amount)}원 · 실제 지출인지 확인해주세요',
+                ),
+                trailing: const Text(
+                  '검토하러 가기',
+                  style: TextStyle(fontWeight: FontWeight.w700),
+                ),
+                onTap: () => context.push('/transactions/${expense.id}'),
               ),
             ),
           ),
