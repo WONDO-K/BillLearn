@@ -274,6 +274,62 @@ void main() {
     },
   );
 
+  test('does not auto-reject when multiple matching expenses exist', () async {
+    final repository = InMemoryExpenseRepository();
+    final useCase = ProcessRawNotification(repository: repository);
+    final firstApproval = RawNotification(
+      id: 'approval-1',
+      sourceType: RawNotificationSourceType.sms,
+      sourceApp: null,
+      sender: '1588-0000',
+      title: null,
+      body: '[신한카드 승인] 12,300원 스타벅스 05/14 12:30',
+      receivedAt: DateTime(2026, 5, 14, 12, 30),
+      sourceHash: 'hash-approval-1',
+      createdAt: DateTime(2026, 5, 14, 12, 30),
+    );
+    final secondApproval = RawNotification(
+      id: 'approval-2',
+      sourceType: RawNotificationSourceType.sms,
+      sourceApp: null,
+      sender: '1588-0000',
+      title: null,
+      body: '[신한카드 승인] 12,300원 스타벅스 05/14 12:35',
+      receivedAt: DateTime(2026, 5, 14, 12, 35),
+      sourceHash: 'hash-approval-2',
+      createdAt: DateTime(2026, 5, 14, 12, 35),
+    );
+    final cancellation = RawNotification(
+      id: 'cancel-ambiguous',
+      sourceType: RawNotificationSourceType.sms,
+      sourceApp: null,
+      sender: '1588-0000',
+      title: null,
+      body: '[신한카드 승인취소] 12,300원 스타벅스',
+      receivedAt: DateTime(2026, 5, 14, 12, 45),
+      sourceHash: 'hash-cancel-ambiguous',
+      createdAt: DateTime(2026, 5, 14, 12, 45),
+    );
+
+    await useCase(firstApproval);
+    await useCase(secondApproval);
+    await useCase(cancellation);
+
+    final expenses = await repository.watchExpenses().first;
+
+    expect(expenses, hasLength(2));
+    expect(
+      expenses.map((expense) => expense.confirmationStatus),
+      everyElement(ConfirmationStatus.confirmed),
+    );
+    expect(
+      expenses.expand((expense) => expense.candidateIds),
+      isNot(contains('candidate-${cancellation.id}')),
+    );
+
+    await repository.dispose();
+  });
+
   test(
     'excludes local currency top-up and stores only final spending',
     () async {

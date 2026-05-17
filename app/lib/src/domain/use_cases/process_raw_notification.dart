@@ -88,7 +88,7 @@ class ProcessRawNotification {
             .toList(growable: false)
           ..sort((a, b) => b.spentAt.compareTo(a.spentAt));
 
-    if (matchingExpenses.isEmpty) {
+    if (matchingExpenses.length != 1) {
       return;
     }
 
