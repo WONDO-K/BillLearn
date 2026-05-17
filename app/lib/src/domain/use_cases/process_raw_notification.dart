@@ -35,6 +35,11 @@ class ProcessRawNotification {
     );
     await repository.saveClassificationResult(classification);
 
+    if (classification.reasonCodes.contains('cancellation_or_refund')) {
+      await _rejectMatchingExpenseForCancellation(candidate.id);
+      return;
+    }
+
     if (!classification.isExpense) {
       return;
     }
@@ -55,6 +60,48 @@ class ProcessRawNotification {
         createdAt: now,
         updatedAt: now,
         syncStatus: SyncStatus.localOnly,
+      ),
+    );
+  }
+
+  Future<void> _rejectMatchingExpenseForCancellation(
+    String cancellationCandidateId,
+  ) async {
+    final cancellationCandidate = await repository.getTransactionCandidateById(
+      cancellationCandidateId,
+    );
+    if (cancellationCandidate == null) {
+      return;
+    }
+
+    // 취소/환불 알림은 원결제를 새 지출로 만들지 않고, 같은 금액/가맹점의 최근 원결제를 제외 처리합니다.
+    final matchingExpenses =
+        (await repository.getExpenses())
+            .where(
+              (expense) =>
+                  expense.confirmationStatus != ConfirmationStatus.rejected &&
+                  expense.amount == cancellationCandidate.amount &&
+                  expense.merchantName == cancellationCandidate.merchantName &&
+                  !expense.spentAt.isAfter(cancellationCandidate.occurredAt),
+            )
+            .toList(growable: false)
+          ..sort((a, b) => b.spentAt.compareTo(a.spentAt));
+
+    if (matchingExpenses.isEmpty) {
+      return;
+    }
+
+    final original = matchingExpenses.first;
+    await repository.updateExpense(
+      original.copyWith(
+        confirmationStatus: ConfirmationStatus.rejected,
+        confirmedBy: ConfirmedBy.rule,
+        candidateIds: [
+          ...original.candidateIds,
+          if (!original.candidateIds.contains(cancellationCandidateId))
+            cancellationCandidateId,
+        ],
+        updatedAt: DateTime.now(),
       ),
     );
   }
