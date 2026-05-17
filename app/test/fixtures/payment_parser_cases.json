@@ -1,0 +1,86 @@
+[
+  {
+    "name": "shinhan_card_sms",
+    "sourceType": "sms",
+    "sourceApp": null,
+    "sender": "1588-0000",
+    "title": null,
+    "body": "[신한카드 승인] 12,300원 스타벅스 05/14 12:30",
+    "expectedStatus": "parsed",
+    "expectedAmount": 12300,
+    "expectedMerchantName": "스타벅스",
+    "expectedPaymentMethodHint": "신한카드"
+  },
+  {
+    "name": "unsupported_promotion_push",
+    "sourceType": "push",
+    "sourceApp": "com.example",
+    "sender": null,
+    "title": "공지",
+    "body": "이번 주 새로운 혜택을 확인하세요",
+    "expectedStatus": "unsupported",
+    "expectedAmount": 0,
+    "expectedMerchantName": "",
+    "expectedPaymentMethodHint": null
+  },
+  {
+    "name": "naverpay_push",
+    "sourceType": "push",
+    "sourceApp": "com.naverpay",
+    "sender": null,
+    "title": "네이버페이",
+    "body": "네이버페이 결제 39,800원 네이버쇼핑 11:32",
+    "expectedStatus": "parsed",
+    "expectedAmount": 39800,
+    "expectedMerchantName": "네이버쇼핑",
+    "expectedPaymentMethodHint": "네이버페이"
+  },
+  {
+    "name": "dongbaek_local_currency_push",
+    "sourceType": "push",
+    "sourceApp": "com.dongbaek",
+    "sender": null,
+    "title": "동백전",
+    "body": "동백전 결제 3,400원 CU편의점 잔액 16,600원",
+    "expectedStatus": "parsed",
+    "expectedAmount": 3400,
+    "expectedMerchantName": "CU편의점",
+    "expectedPaymentMethodHint": "동백전"
+  },
+  {
+    "name": "kb_card_installment_token_sms",
+    "sourceType": "sms",
+    "sourceApp": null,
+    "sender": "1588-1688",
+    "title": null,
+    "body": "[KB국민카드] 05/14 12:30 15,000원 일시불 쿠팡",
+    "expectedStatus": "parsed",
+    "expectedAmount": 15000,
+    "expectedMerchantName": "쿠팡",
+    "expectedPaymentMethodHint": "KB국민카드"
+  },
+  {
+    "name": "kakaobank_card_merchant_before_amount_push",
+    "sourceType": "push",
+    "sourceApp": "com.kakaobank",
+    "sender": null,
+    "title": "카카오뱅크 체크카드",
+    "body": "카카오뱅크 체크카드 승인 쿠팡 15,000원",
+    "expectedStatus": "parsed",
+    "expectedAmount": 15000,
+    "expectedMerchantName": "쿠팡",
+    "expectedPaymentMethodHint": "카카오뱅크 체크카드"
+  },
+  {
+    "name": "kakaopay_multiline_push",
+    "sourceType": "push",
+    "sourceApp": "com.kakaopay",
+    "sender": null,
+    "title": "카카오페이",
+    "body": "카카오페이 결제완료\n배달의민족\n23,400원",
+    "expectedStatus": "parsed",
+    "expectedAmount": 23400,
+    "expectedMerchantName": "배달의민족",
+    "expectedPaymentMethodHint": "카카오페이"
+  }
+]

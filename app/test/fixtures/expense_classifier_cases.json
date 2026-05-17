@@ -1,0 +1,62 @@
+[
+  {
+    "name": "stable_card_payment",
+    "amount": 12300,
+    "merchantName": "스타벅스",
+    "rawTexts": ["[승인] 12,300원 스타벅스"],
+    "expectedIsExpense": true,
+    "expectedRequiresReview": false,
+    "expectedIsTransferLike": false,
+    "expectedReasonCodes": ["stable_payment_signal"]
+  },
+  {
+    "name": "explicit_account_transfer",
+    "amount": 50000,
+    "merchantName": "내 계좌",
+    "rawTexts": ["내 계좌로 50,000원 이체 완료"],
+    "expectedIsExpense": false,
+    "expectedRequiresReview": true,
+    "expectedIsTransferLike": true,
+    "expectedReasonCodes": ["transfer_like_keyword"]
+  },
+  {
+    "name": "toss_person_to_person_transfer",
+    "amount": 50000,
+    "merchantName": "홍길동님에게",
+    "rawTexts": ["토스뱅크 홍길동님에게 50,000원 보냈어요"],
+    "expectedIsExpense": false,
+    "expectedRequiresReview": true,
+    "expectedIsTransferLike": true,
+    "expectedReasonCodes": ["bank_transfer_phrase"]
+  },
+  {
+    "name": "kakaobank_incoming_transfer",
+    "amount": 1000000,
+    "merchantName": "급여",
+    "rawTexts": ["카카오뱅크 급여 1,000,000원 받았어요 보낸분 주식회사빌런"],
+    "expectedIsExpense": false,
+    "expectedRequiresReview": true,
+    "expectedIsTransferLike": true,
+    "expectedReasonCodes": ["bank_transfer_phrase"]
+  },
+  {
+    "name": "dongbaek_top_up",
+    "amount": 5000,
+    "merchantName": "동백전 충전",
+    "rawTexts": ["동백전 충전 5,000원"],
+    "expectedIsExpense": false,
+    "expectedRequiresReview": true,
+    "expectedIsTransferLike": true,
+    "expectedReasonCodes": ["stored_value_top_up"]
+  },
+  {
+    "name": "ev_charging_station_payment",
+    "amount": 12000,
+    "merchantName": "전기차충전소",
+    "rawTexts": ["[승인] 12,000원 전기차충전소"],
+    "expectedIsExpense": true,
+    "expectedRequiresReview": false,
+    "expectedIsTransferLike": false,
+    "expectedReasonCodes": ["stable_payment_signal"]
+  }
+]

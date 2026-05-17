@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:billlearn/src/domain/classification/expense_classifier.dart';
 import 'package:billlearn/src/domain/models/raw_notification.dart';
 import 'package:billlearn/src/domain/models/transaction_candidate.dart';
@@ -6,53 +9,36 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   final classifier = ExpenseClassifier();
 
-  TransactionCandidate candidate({
-    required String id,
-    required int amount,
-    required String merchantName,
-    required DateTime occurredAt,
-  }) {
-    return TransactionCandidate(
-      id: id,
-      rawNotificationId: 'raw-$id',
-      amount: amount,
-      merchantName: merchantName,
-      paymentMethodHint: '신한카드',
-      occurredAt: occurredAt,
-      sourceType: RawNotificationSourceType.sms,
-      parseConfidence: 0.9,
-      parseStatus: ParseStatus.parsed,
-      createdAt: occurredAt,
-    );
+  // 분류 정책 샘플은 test/fixtures/expense_classifier_cases.json에 추가합니다.
+  // 샘플 파일이 분류 정책의 회귀 테스트 목록 역할을 합니다.
+  final cases = _loadClassifierCases();
+
+  for (final testCase in cases) {
+    test('classifies fixture: ${testCase.name}', () {
+      final result = classifier.classify(
+        candidates: [testCase.candidate],
+        rawTexts: testCase.rawTexts,
+      );
+
+      expect(result.isExpense, testCase.expectedIsExpense);
+      expect(result.requiresReview, testCase.expectedRequiresReview);
+      expect(result.isTransferLike, testCase.expectedIsTransferLike);
+      for (final reasonCode in testCase.expectedReasonCodes) {
+        expect(result.reasonCodes, contains(reasonCode));
+      }
+    });
   }
-
-  test('classifies stable payment candidate as expense', () {
-    final result = classifier.classify(
-      candidates: [
-        candidate(
-          id: '1',
-          amount: 12300,
-          merchantName: '스타벅스',
-          occurredAt: DateTime(2026, 5, 14, 12, 30),
-        ),
-      ],
-      rawTexts: const ['[승인] 12,300원 스타벅스'],
-    );
-
-    expect(result.isExpense, isTrue);
-    expect(result.requiresReview, isFalse);
-  });
 
   test('detects duplicate candidates', () {
     final result = classifier.classify(
       candidates: [
-        candidate(
+        _candidate(
           id: '1',
           amount: 12300,
           merchantName: '스타벅스',
           occurredAt: DateTime(2026, 5, 14, 12, 30),
         ),
-        candidate(
+        _candidate(
           id: '2',
           amount: 12300,
           merchantName: '스타벅스',
@@ -65,95 +51,71 @@ void main() {
     expect(result.isDuplicate, isTrue);
     expect(result.isExpense, isTrue);
   });
+}
 
-  test('marks transfer-like text as review required', () {
-    final result = classifier.classify(
-      candidates: [
-        candidate(
-          id: '1',
-          amount: 50000,
-          merchantName: '내 계좌',
-          occurredAt: DateTime(2026, 5, 14, 12, 30),
-        ),
-      ],
-      rawTexts: const ['내 계좌로 50,000원 이체 완료'],
-    );
+List<_ClassifierFixtureCase> _loadClassifierCases() {
+  final file = File('test/fixtures/expense_classifier_cases.json');
+  final items = jsonDecode(file.readAsStringSync()) as List<dynamic>;
+  return items
+      .cast<Map<String, dynamic>>()
+      .map(_ClassifierFixtureCase.fromJson)
+      .toList(growable: false);
+}
 
-    expect(result.isTransferLike, isTrue);
-    expect(result.requiresReview, isTrue);
-    expect(result.isExpense, isFalse);
+TransactionCandidate _candidate({
+  required String id,
+  required int amount,
+  required String merchantName,
+  required DateTime occurredAt,
+}) {
+  return TransactionCandidate(
+    id: id,
+    rawNotificationId: 'raw-$id',
+    amount: amount,
+    merchantName: merchantName,
+    paymentMethodHint: '신한카드',
+    occurredAt: occurredAt,
+    sourceType: RawNotificationSourceType.sms,
+    parseConfidence: 0.9,
+    parseStatus: ParseStatus.parsed,
+    createdAt: occurredAt,
+  );
+}
+
+class _ClassifierFixtureCase {
+  const _ClassifierFixtureCase({
+    required this.name,
+    required this.candidate,
+    required this.rawTexts,
+    required this.expectedIsExpense,
+    required this.expectedRequiresReview,
+    required this.expectedIsTransferLike,
+    required this.expectedReasonCodes,
   });
 
-  test('marks bank app person-to-person transfer phrases as non-expense', () {
-    final result = classifier.classify(
-      candidates: [
-        candidate(
-          id: '1',
-          amount: 50000,
-          merchantName: '홍길동님에게',
-          occurredAt: DateTime(2026, 5, 14, 12, 30),
-        ),
-      ],
-      rawTexts: const ['토스뱅크 홍길동님에게 50,000원 보냈어요'],
+  final String name;
+  final TransactionCandidate candidate;
+  final List<String> rawTexts;
+  final bool expectedIsExpense;
+  final bool expectedRequiresReview;
+  final bool expectedIsTransferLike;
+  final List<String> expectedReasonCodes;
+
+  factory _ClassifierFixtureCase.fromJson(Map<String, dynamic> json) {
+    return _ClassifierFixtureCase(
+      name: json['name'] as String,
+      candidate: _candidate(
+        id: json['name'] as String,
+        amount: json['amount'] as int,
+        merchantName: json['merchantName'] as String,
+        occurredAt: DateTime(2026, 5, 14, 12, 30),
+      ),
+      rawTexts: (json['rawTexts'] as List<dynamic>).cast<String>(),
+      expectedIsExpense: json['expectedIsExpense'] as bool,
+      expectedRequiresReview: json['expectedRequiresReview'] as bool,
+      expectedIsTransferLike: json['expectedIsTransferLike'] as bool,
+      expectedReasonCodes: (json['expectedReasonCodes'] as List<dynamic>)
+          .cast<String>(),
     );
-
-    expect(result.isTransferLike, isTrue);
-    expect(result.requiresReview, isTrue);
-    expect(result.isExpense, isFalse);
-    expect(result.reasonCodes, contains('bank_transfer_phrase'));
-  });
-
-  test('marks incoming bank transfer phrases as non-expense', () {
-    final result = classifier.classify(
-      candidates: [
-        candidate(
-          id: '1',
-          amount: 1000000,
-          merchantName: '급여',
-          occurredAt: DateTime(2026, 5, 14, 12, 30),
-        ),
-      ],
-      rawTexts: const ['카카오뱅크 급여 1,000,000원 받았어요 보낸분 주식회사빌런'],
-    );
-
-    expect(result.isTransferLike, isTrue);
-    expect(result.requiresReview, isTrue);
-    expect(result.isExpense, isFalse);
-    expect(result.reasonCodes, contains('bank_transfer_phrase'));
-  });
-
-  test('excludes wallet and local currency top-up as non-spending', () {
-    final result = classifier.classify(
-      candidates: [
-        candidate(
-          id: '1',
-          amount: 5000,
-          merchantName: '동백전 충전',
-          occurredAt: DateTime(2026, 5, 14, 12, 30),
-        ),
-      ],
-      rawTexts: const ['동백전 충전 5,000원'],
-    );
-
-    expect(result.isTransferLike, isTrue);
-    expect(result.isExpense, isFalse);
-    expect(result.reasonCodes, contains('stored_value_top_up'));
-  });
-
-  test('keeps charging station payment as real spending', () {
-    final result = classifier.classify(
-      candidates: [
-        candidate(
-          id: '1',
-          amount: 12000,
-          merchantName: '전기차충전소',
-          occurredAt: DateTime(2026, 5, 14, 12, 30),
-        ),
-      ],
-      rawTexts: const ['[승인] 12,000원 전기차충전소'],
-    );
-
-    expect(result.isTransferLike, isFalse);
-    expect(result.isExpense, isTrue);
-  });
+  }
 }
