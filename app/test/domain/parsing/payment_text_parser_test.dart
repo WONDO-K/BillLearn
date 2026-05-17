@@ -91,4 +91,70 @@ void main() {
       expect(candidate.paymentMethodHint, '동백전');
     },
   );
+
+  test(
+    'parses card message with installment token between amount and merchant',
+    () {
+      final raw = RawNotification(
+        id: 'raw-5',
+        sourceType: RawNotificationSourceType.sms,
+        sourceApp: null,
+        sender: '1588-1688',
+        title: null,
+        body: '[KB국민카드] 05/14 12:30 15,000원 일시불 쿠팡',
+        receivedAt: DateTime(2026, 5, 14, 12, 31),
+        sourceHash: 'hash-5',
+        createdAt: DateTime(2026, 5, 14, 12, 31),
+      );
+
+      final candidate = parser.parse(raw);
+
+      expect(candidate.parseStatus, ParseStatus.parsed);
+      expect(candidate.amount, 15000);
+      expect(candidate.merchantName, '쿠팡');
+      expect(candidate.paymentMethodHint, 'KB국민카드');
+    },
+  );
+
+  test('parses card message with merchant before amount', () {
+    final raw = RawNotification(
+      id: 'raw-6',
+      sourceType: RawNotificationSourceType.push,
+      sourceApp: 'com.kakaobank',
+      sender: null,
+      title: '카카오뱅크 체크카드',
+      body: '카카오뱅크 체크카드 승인 쿠팡 15,000원',
+      receivedAt: DateTime(2026, 5, 14, 12, 31),
+      sourceHash: 'hash-6',
+      createdAt: DateTime(2026, 5, 14, 12, 31),
+    );
+
+    final candidate = parser.parse(raw);
+
+    expect(candidate.parseStatus, ParseStatus.parsed);
+    expect(candidate.amount, 15000);
+    expect(candidate.merchantName, '쿠팡');
+    expect(candidate.paymentMethodHint, '카카오뱅크 체크카드');
+  });
+
+  test('parses simple pay multiline message with merchant before amount', () {
+    final raw = RawNotification(
+      id: 'raw-7',
+      sourceType: RawNotificationSourceType.push,
+      sourceApp: 'com.kakaopay',
+      sender: null,
+      title: '카카오페이',
+      body: '카카오페이 결제완료\n배달의민족\n23,400원',
+      receivedAt: DateTime(2026, 5, 14, 12, 45),
+      sourceHash: 'hash-7',
+      createdAt: DateTime(2026, 5, 14, 12, 45),
+    );
+
+    final candidate = parser.parse(raw);
+
+    expect(candidate.parseStatus, ParseStatus.parsed);
+    expect(candidate.amount, 23400);
+    expect(candidate.merchantName, '배달의민족');
+    expect(candidate.paymentMethodHint, '카카오페이');
+  });
 }
