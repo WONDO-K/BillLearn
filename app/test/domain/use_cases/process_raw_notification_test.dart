@@ -117,6 +117,36 @@ void main() {
     await repository.dispose();
   });
 
+  test('does not store person-to-person bank transfer as expense', () async {
+    final repository = InMemoryExpenseRepository();
+    final useCase = ProcessRawNotification(repository: repository);
+    final raw = RawNotification(
+      id: 'bank-transfer-1',
+      sourceType: RawNotificationSourceType.push,
+      sourceApp: 'viva.republica.toss',
+      sender: null,
+      title: '토스뱅크',
+      body: '토스뱅크 홍길동님에게 50,000원 보냈어요',
+      receivedAt: DateTime(2026, 5, 14, 12, 30),
+      sourceHash: 'hash-bank-transfer-1',
+      createdAt: DateTime(2026, 5, 14, 12, 30),
+    );
+
+    await useCase(raw);
+
+    final candidates = await repository.getCandidatesForRawNotification(raw.id);
+    final classification = await repository
+        .getClassificationResultByCandidateId('candidate-${raw.id}');
+    final expenses = await repository.watchExpenses().first;
+
+    expect(candidates, hasLength(1));
+    expect(classification?.isTransferLike, isTrue);
+    expect(classification?.reasonCodes, contains('bank_transfer_phrase'));
+    expect(expenses, isEmpty);
+
+    await repository.dispose();
+  });
+
   test(
     'excludes local currency top-up and stores only final spending',
     () async {

@@ -84,6 +84,44 @@ void main() {
     expect(result.isExpense, isFalse);
   });
 
+  test('marks bank app person-to-person transfer phrases as non-expense', () {
+    final result = classifier.classify(
+      candidates: [
+        candidate(
+          id: '1',
+          amount: 50000,
+          merchantName: '홍길동님에게',
+          occurredAt: DateTime(2026, 5, 14, 12, 30),
+        ),
+      ],
+      rawTexts: const ['토스뱅크 홍길동님에게 50,000원 보냈어요'],
+    );
+
+    expect(result.isTransferLike, isTrue);
+    expect(result.requiresReview, isTrue);
+    expect(result.isExpense, isFalse);
+    expect(result.reasonCodes, contains('bank_transfer_phrase'));
+  });
+
+  test('marks incoming bank transfer phrases as non-expense', () {
+    final result = classifier.classify(
+      candidates: [
+        candidate(
+          id: '1',
+          amount: 1000000,
+          merchantName: '급여',
+          occurredAt: DateTime(2026, 5, 14, 12, 30),
+        ),
+      ],
+      rawTexts: const ['카카오뱅크 급여 1,000,000원 받았어요 보낸분 주식회사빌런'],
+    );
+
+    expect(result.isTransferLike, isTrue);
+    expect(result.requiresReview, isTrue);
+    expect(result.isExpense, isFalse);
+    expect(result.reasonCodes, contains('bank_transfer_phrase'));
+  });
+
   test('excludes wallet and local currency top-up as non-spending', () {
     final result = classifier.classify(
       candidates: [

@@ -2,6 +2,7 @@ import 'package:billlearn/src/domain/models/classification_result.dart';
 import 'package:billlearn/src/domain/models/transaction_candidate.dart';
 
 class ExpenseClassifier {
+  // 은행/간편송금 앱에서 계좌 이동을 실제 소비로 저장하지 않기 위한 1차 필터입니다.
   static const _transferKeywords = [
     '이체',
     '입금',
@@ -11,6 +12,20 @@ class ExpenseClassifier {
     '계좌간',
     '내 계좌',
   ];
+
+  // Toss/KakaoBank 등은 "이체"라는 단어 없이 자연어 송금 문구를 보내는 경우가 있습니다.
+  static const _bankTransferPhrases = [
+    '보냈어요',
+    '받았어요',
+    '받는분',
+    '보낸분',
+    '받는 사람',
+    '보낸 사람',
+    '님에게',
+    '님이',
+  ];
+
+  // 선불/지역화폐 충전은 지출의 원천 이동일 뿐, 최종 소비가 아니므로 별도 제외합니다.
   static const _storedValueTopUpKeywords = [
     '동백전 충전',
     '지역화폐 충전',
@@ -30,8 +45,11 @@ class ExpenseClassifier {
     final isStoredValueTopUp = _storedValueTopUpKeywords.any(
       joinedText.contains,
     );
+    final hasBankTransferPhrase = _bankTransferPhrases.any(joinedText.contains);
     final isTransferLike =
-        isStoredValueTopUp || _transferKeywords.any(joinedText.contains);
+        isStoredValueTopUp ||
+        hasBankTransferPhrase ||
+        _transferKeywords.any(joinedText.contains);
     final isDuplicate = _hasDuplicateSignal(candidates);
     final hasStableCandidate = candidates.any(
       (candidate) =>
@@ -52,6 +70,7 @@ class ExpenseClassifier {
       reasonCodes: [
         if (isDuplicate) 'duplicate_candidate_group',
         if (isTransferLike) 'transfer_like_keyword',
+        if (hasBankTransferPhrase) 'bank_transfer_phrase',
         if (isStoredValueTopUp) 'stored_value_top_up',
         if (isExpense) 'stable_payment_signal',
         if (!hasStableCandidate) 'weak_parse_signal',
