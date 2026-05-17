@@ -1,11 +1,15 @@
 import 'dart:async';
 
+import 'package:billlearn/src/domain/models/classification_result.dart';
 import 'package:billlearn/src/domain/models/expense_transaction.dart';
 import 'package:billlearn/src/domain/models/raw_notification.dart';
+import 'package:billlearn/src/domain/models/transaction_candidate.dart';
 import 'package:billlearn/src/domain/repositories/expense_repository.dart';
 
 class InMemoryExpenseRepository implements ExpenseRepository {
   final List<RawNotification> _rawNotifications = [];
+  final List<TransactionCandidate> _candidates = [];
+  final List<ClassificationResult> _classifications = [];
   final List<ExpenseTransaction> _expenses = [];
 
   final _rawController = StreamController<List<RawNotification>>.broadcast();
@@ -52,9 +56,46 @@ class InMemoryExpenseRepository implements ExpenseRepository {
   }
 
   @override
+  Future<List<TransactionCandidate>> getCandidatesForRawNotification(
+    String rawNotificationId,
+  ) async {
+    return List.unmodifiable(
+      _candidates.where(
+        (candidate) => candidate.rawNotificationId == rawNotificationId,
+      ),
+    );
+  }
+
+  @override
+  Future<ClassificationResult?> getClassificationResultByCandidateId(
+    String candidateId,
+  ) async {
+    for (final classification in _classifications) {
+      if (classification.candidateIds.contains(candidateId)) {
+        return classification;
+      }
+    }
+    return null;
+  }
+
+  @override
   Future<void> saveRawNotification(RawNotification rawNotification) async {
     _rawNotifications.add(rawNotification);
     _rawController.add(List.unmodifiable(_rawNotifications));
+  }
+
+  @override
+  Future<void> saveTransactionCandidate(TransactionCandidate candidate) async {
+    _candidates.removeWhere((item) => item.id == candidate.id);
+    _candidates.add(candidate);
+  }
+
+  @override
+  Future<void> saveClassificationResult(
+    ClassificationResult classification,
+  ) async {
+    _classifications.removeWhere((item) => item.id == classification.id);
+    _classifications.add(classification);
   }
 
   @override

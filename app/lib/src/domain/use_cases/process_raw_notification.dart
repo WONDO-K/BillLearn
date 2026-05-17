@@ -27,10 +27,13 @@ class ProcessRawNotification {
     await repository.saveRawNotification(raw);
 
     final candidate = _parser.parse(raw);
+    await repository.saveTransactionCandidate(candidate);
+
     final classification = _classifier.classify(
       candidates: [candidate],
       rawTexts: [raw.body],
     );
+    await repository.saveClassificationResult(classification);
 
     if (!classification.isExpense) {
       return;

@@ -40,7 +40,48 @@ class ExpenseTransactions extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
-@DriftDatabase(tables: [RawNotifications, ExpenseTransactions])
+@DataClassName('TransactionCandidateRow')
+class TransactionCandidates extends Table {
+  TextColumn get id => text()();
+  TextColumn get rawNotificationId => text()();
+  IntColumn get amount => integer()();
+  TextColumn get merchantName => text()();
+  TextColumn get paymentMethodHint => text().nullable()();
+  DateTimeColumn get occurredAt => dateTime()();
+  TextColumn get sourceType => text()();
+  RealColumn get parseConfidence => real()();
+  TextColumn get parseStatus => text()();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+@DataClassName('ClassificationResultRow')
+class ClassificationResults extends Table {
+  TextColumn get id => text()();
+  TextColumn get candidateIdsJson => text()();
+  BoolColumn get isDuplicate => boolean()();
+  BoolColumn get isTransferLike => boolean()();
+  BoolColumn get isExpense => boolean()();
+  BoolColumn get requiresReview => boolean()();
+  TextColumn get reasonCodesJson => text()();
+  RealColumn get confidence => real()();
+  DateTimeColumn get createdAt => dateTime()();
+  BoolColumn get userFeedback => boolean().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+@DriftDatabase(
+  tables: [
+    RawNotifications,
+    ExpenseTransactions,
+    TransactionCandidates,
+    ClassificationResults,
+  ],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.executor);
 
@@ -77,6 +118,22 @@ class AppDatabase extends _$AppDatabase {
     )..where((row) => row.id.equals(id))).getSingleOrNull();
   }
 
+  Future<List<TransactionCandidateRow>> getTransactionCandidateRowsForRaw(
+    String rawNotificationId,
+  ) {
+    return (select(
+      transactionCandidates,
+    )..where((row) => row.rawNotificationId.equals(rawNotificationId))).get();
+  }
+
+  Future<ClassificationResultRow?> getClassificationResultRowByCandidateId(
+    String candidateId,
+  ) {
+    return (select(classificationResults)
+          ..where((row) => row.candidateIdsJson.contains(candidateId)))
+        .getSingleOrNull();
+  }
+
   Future<void> saveRawNotificationRow(
     RawNotificationsCompanion rawNotification,
   ) {
@@ -87,6 +144,22 @@ class AppDatabase extends _$AppDatabase {
     ExpenseTransactionsCompanion expenseTransaction,
   ) {
     return into(expenseTransactions).insertOnConflictUpdate(expenseTransaction);
+  }
+
+  Future<void> saveTransactionCandidateRow(
+    TransactionCandidatesCompanion transactionCandidate,
+  ) {
+    return into(
+      transactionCandidates,
+    ).insertOnConflictUpdate(transactionCandidate);
+  }
+
+  Future<void> saveClassificationResultRow(
+    ClassificationResultsCompanion classificationResult,
+  ) {
+    return into(
+      classificationResults,
+    ).insertOnConflictUpdate(classificationResult);
   }
 }
 

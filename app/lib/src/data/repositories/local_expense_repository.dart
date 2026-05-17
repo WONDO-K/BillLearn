@@ -1,8 +1,10 @@
 import 'dart:convert';
 
 import 'package:billlearn/src/data/local/app_database.dart';
+import 'package:billlearn/src/domain/models/classification_result.dart';
 import 'package:billlearn/src/domain/models/expense_transaction.dart';
 import 'package:billlearn/src/domain/models/raw_notification.dart';
+import 'package:billlearn/src/domain/models/transaction_candidate.dart';
 import 'package:billlearn/src/domain/repositories/expense_repository.dart';
 import 'package:drift/drift.dart';
 
@@ -52,6 +54,29 @@ class LocalExpenseRepository implements ExpenseRepository {
   }
 
   @override
+  Future<List<TransactionCandidate>> getCandidatesForRawNotification(
+    String rawNotificationId,
+  ) async {
+    final rows = await _database.getTransactionCandidateRowsForRaw(
+      rawNotificationId,
+    );
+    return rows.map(_transactionCandidateFromRow).toList(growable: false);
+  }
+
+  @override
+  Future<ClassificationResult?> getClassificationResultByCandidateId(
+    String candidateId,
+  ) async {
+    final row = await _database.getClassificationResultRowByCandidateId(
+      candidateId,
+    );
+    if (row == null) {
+      return null;
+    }
+    return _classificationResultFromRow(row);
+  }
+
+  @override
   Future<void> saveRawNotification(RawNotification rawNotification) {
     return _database.saveRawNotificationRow(
       RawNotificationsCompanion.insert(
@@ -64,6 +89,42 @@ class LocalExpenseRepository implements ExpenseRepository {
         receivedAt: rawNotification.receivedAt,
         sourceHash: rawNotification.sourceHash,
         createdAt: rawNotification.createdAt,
+      ),
+    );
+  }
+
+  @override
+  Future<void> saveTransactionCandidate(TransactionCandidate candidate) {
+    return _database.saveTransactionCandidateRow(
+      TransactionCandidatesCompanion.insert(
+        id: candidate.id,
+        rawNotificationId: candidate.rawNotificationId,
+        amount: candidate.amount,
+        merchantName: candidate.merchantName,
+        paymentMethodHint: Value(candidate.paymentMethodHint),
+        occurredAt: candidate.occurredAt,
+        sourceType: candidate.sourceType.name,
+        parseConfidence: candidate.parseConfidence,
+        parseStatus: candidate.parseStatus.name,
+        createdAt: candidate.createdAt,
+      ),
+    );
+  }
+
+  @override
+  Future<void> saveClassificationResult(ClassificationResult classification) {
+    return _database.saveClassificationResultRow(
+      ClassificationResultsCompanion.insert(
+        id: classification.id,
+        candidateIdsJson: jsonEncode(classification.candidateIds),
+        isDuplicate: classification.isDuplicate,
+        isTransferLike: classification.isTransferLike,
+        isExpense: classification.isExpense,
+        requiresReview: classification.requiresReview,
+        reasonCodesJson: jsonEncode(classification.reasonCodes),
+        confidence: classification.confidence,
+        createdAt: classification.createdAt,
+        userFeedback: Value(classification.userFeedback),
       ),
     );
   }
@@ -112,6 +173,42 @@ class LocalExpenseRepository implements ExpenseRepository {
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
       syncStatus: SyncStatus.values.byName(row.syncStatus),
+    );
+  }
+
+  TransactionCandidate _transactionCandidateFromRow(
+    TransactionCandidateRow row,
+  ) {
+    return TransactionCandidate(
+      id: row.id,
+      rawNotificationId: row.rawNotificationId,
+      amount: row.amount,
+      merchantName: row.merchantName,
+      paymentMethodHint: row.paymentMethodHint,
+      occurredAt: row.occurredAt,
+      sourceType: RawNotificationSourceType.values.byName(row.sourceType),
+      parseConfidence: row.parseConfidence,
+      parseStatus: ParseStatus.values.byName(row.parseStatus),
+      createdAt: row.createdAt,
+    );
+  }
+
+  ClassificationResult _classificationResultFromRow(
+    ClassificationResultRow row,
+  ) {
+    return ClassificationResult(
+      id: row.id,
+      candidateIds: (jsonDecode(row.candidateIdsJson) as List<dynamic>)
+          .cast<String>(),
+      isDuplicate: row.isDuplicate,
+      isTransferLike: row.isTransferLike,
+      isExpense: row.isExpense,
+      requiresReview: row.requiresReview,
+      reasonCodes: (jsonDecode(row.reasonCodesJson) as List<dynamic>)
+          .cast<String>(),
+      confidence: row.confidence,
+      createdAt: row.createdAt,
+      userFeedback: row.userFeedback,
     );
   }
 

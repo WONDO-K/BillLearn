@@ -23,9 +23,16 @@ void main() {
     await useCase(raw);
 
     final rawNotifications = await repository.watchRawNotifications().first;
+    final candidates = await repository.getCandidatesForRawNotification(raw.id);
+    final classification = await repository
+        .getClassificationResultByCandidateId('candidate-${raw.id}');
     final expenses = await repository.watchExpenses().first;
 
     expect(rawNotifications, [raw]);
+    expect(candidates, hasLength(1));
+    expect(candidates.single.merchantName, '스타벅스');
+    expect(classification?.isExpense, isTrue);
+    expect(classification?.reasonCodes, contains('stable_payment_signal'));
     expect(expenses, hasLength(1));
     expect(expenses.single.amount, 12300);
     expect(expenses.single.merchantName, '스타벅스');

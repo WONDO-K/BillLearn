@@ -1,7 +1,9 @@
 import 'package:billlearn/src/data/local/app_database.dart';
 import 'package:billlearn/src/data/repositories/local_expense_repository.dart';
+import 'package:billlearn/src/domain/models/classification_result.dart';
 import 'package:billlearn/src/domain/models/expense_transaction.dart';
 import 'package:billlearn/src/domain/models/raw_notification.dart';
+import 'package:billlearn/src/domain/models/transaction_candidate.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -32,8 +34,34 @@ void main() {
       updatedAt: DateTime(2026, 5, 14, 12, 32),
       syncStatus: SyncStatus.localOnly,
     );
+    final candidate = TransactionCandidate(
+      id: 'candidate-1',
+      rawNotificationId: raw.id,
+      amount: 12300,
+      merchantName: '스타벅스',
+      paymentMethodHint: '신한카드',
+      occurredAt: DateTime(2026, 5, 14, 12, 30),
+      sourceType: RawNotificationSourceType.sms,
+      parseConfidence: 0.9,
+      parseStatus: ParseStatus.parsed,
+      createdAt: DateTime(2026, 5, 14, 12, 31),
+    );
+    final classification = ClassificationResult(
+      id: 'classification-1',
+      candidateIds: const ['candidate-1'],
+      isDuplicate: false,
+      isTransferLike: false,
+      isExpense: true,
+      requiresReview: false,
+      reasonCodes: const ['stable_payment_signal'],
+      confidence: 0.9,
+      createdAt: DateTime(2026, 5, 14, 12, 31),
+      userFeedback: null,
+    );
 
     await repository.saveRawNotification(raw);
+    await repository.saveTransactionCandidate(candidate);
+    await repository.saveClassificationResult(classification);
     await repository.saveExpense(expense);
 
     final storedRaw = await repository.watchRawNotifications().first;
@@ -42,6 +70,11 @@ void main() {
     );
     final storedExpenses = await repository.watchExpenses().first;
     final expenseSnapshot = await repository.getExpenses();
+    final storedCandidates = await repository.getCandidatesForRawNotification(
+      raw.id,
+    );
+    final storedClassification = await repository
+        .getClassificationResultByCandidateId(candidate.id);
 
     expect(storedRaw, hasLength(1));
     expect(storedRaw.single.id, raw.id);
@@ -49,6 +82,15 @@ void main() {
     expect(storedRaw.single.body, raw.body);
     expect(storedRaw.single.sourceHash, raw.sourceHash);
     expect(rawBySourceHash?.id, raw.id);
+    expect(storedCandidates, hasLength(1));
+    expect(storedCandidates.single.id, candidate.id);
+    expect(storedCandidates.single.amount, candidate.amount);
+    expect(storedCandidates.single.merchantName, candidate.merchantName);
+    expect(storedCandidates.single.parseStatus, candidate.parseStatus);
+    expect(storedClassification?.id, classification.id);
+    expect(storedClassification?.candidateIds, classification.candidateIds);
+    expect(storedClassification?.reasonCodes, classification.reasonCodes);
+    expect(storedClassification?.isExpense, isTrue);
 
     expect(storedExpenses, hasLength(1));
     expect(storedExpenses.single.id, expense.id);
