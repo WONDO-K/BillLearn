@@ -25,6 +25,10 @@ final expensesProvider = StreamProvider<List<ExpenseTransaction>>((ref) {
   return ref.watch(expenseRepositoryProvider).watchExpenses();
 });
 
+final rawNotificationsProvider = StreamProvider<List<RawNotification>>((ref) {
+  return ref.watch(expenseRepositoryProvider).watchRawNotifications();
+});
+
 final expenseByIdProvider = FutureProvider.family<ExpenseTransaction?, String>((
   ref,
   id,

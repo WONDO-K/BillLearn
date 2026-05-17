@@ -1,4 +1,6 @@
 import 'package:billlearn/src/app/app_providers.dart';
+import 'package:billlearn/src/data/repositories/in_memory_expense_repository.dart';
+import 'package:billlearn/src/domain/models/raw_notification.dart';
 import 'package:billlearn/src/features/settings/settings_screen.dart';
 import 'package:billlearn/src/platform/android/android_event_bridge.dart';
 import 'package:flutter/material.dart';
@@ -13,10 +15,14 @@ void main() {
       notificationAccessEnabled: false,
       smsPermissionGranted: true,
     );
+    final repository = InMemoryExpenseRepository();
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [androidEventBridgeProvider.overrideWithValue(bridge)],
+        overrides: [
+          androidEventBridgeProvider.overrideWithValue(bridge),
+          expenseRepositoryProvider.overrideWithValue(repository),
+        ],
         child: const MaterialApp(home: SettingsScreen()),
       ),
     );
@@ -29,6 +35,8 @@ void main() {
     await tester.pump();
 
     expect(bridge.openNotificationSettingsCallCount, 1);
+
+    await repository.dispose();
   });
 
   testWidgets('shows sms permission status and requests permission', (
@@ -38,10 +46,14 @@ void main() {
       notificationAccessEnabled: true,
       smsPermissionGranted: false,
     );
+    final repository = InMemoryExpenseRepository();
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [androidEventBridgeProvider.overrideWithValue(bridge)],
+        overrides: [
+          androidEventBridgeProvider.overrideWithValue(bridge),
+          expenseRepositoryProvider.overrideWithValue(repository),
+        ],
         child: const MaterialApp(home: SettingsScreen()),
       ),
     );
@@ -54,6 +66,47 @@ void main() {
     await tester.pump();
 
     expect(bridge.requestSmsPermissionCallCount, 1);
+
+    await repository.dispose();
+  });
+
+  testWidgets('shows raw notification collection diagnostics', (tester) async {
+    final bridge = _FakeAndroidEventBridge(
+      notificationAccessEnabled: true,
+      smsPermissionGranted: true,
+    );
+    final repository = InMemoryExpenseRepository();
+    await repository.saveRawNotification(
+      RawNotification(
+        id: 'raw-1',
+        sourceType: RawNotificationSourceType.sms,
+        sourceApp: null,
+        sender: '1588-0000',
+        title: null,
+        body: '[신한카드 승인] 12,300원 스타벅스',
+        receivedAt: DateTime(2026, 5, 14, 12, 30),
+        sourceHash: 'hash-raw-1',
+        createdAt: DateTime(2026, 5, 14, 12, 30),
+      ),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          androidEventBridgeProvider.overrideWithValue(bridge),
+          expenseRepositoryProvider.overrideWithValue(repository),
+        ],
+        child: const MaterialApp(home: SettingsScreen()),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('수집 진단'), findsOneWidget);
+    expect(find.text('최근 수집 1건'), findsOneWidget);
+    expect(find.text('마지막 수집'), findsOneWidget);
+    expect(find.text('[신한카드 승인] 12,300원 스타벅스'), findsOneWidget);
+
+    await repository.dispose();
   });
 }
 
