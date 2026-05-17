@@ -35,6 +35,8 @@ void main() {
     await tester.pump();
 
     expect(find.text('내역'), findsOneWidget);
+    expect(find.text('정리된 지출 흐름'), findsOneWidget);
+    expect(find.text('확정 2건'), findsOneWidget);
     expect(find.text('네이버페이'), findsOneWidget);
     expect(find.text('39,800원'), findsOneWidget);
     expect(find.text('스타벅스'), findsOneWidget);
@@ -64,6 +66,7 @@ void main() {
     await tester.pump();
 
     expect(find.text('동백전 충전'), findsOneWidget);
+    expect(find.text('제외 1건'), findsOneWidget);
     expect(find.text('제외됨'), findsOneWidget);
     expect(find.text('5,000원'), findsOneWidget);
 
