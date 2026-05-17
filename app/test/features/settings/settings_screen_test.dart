@@ -1,6 +1,8 @@
 import 'package:billlearn/src/app/app_providers.dart';
 import 'package:billlearn/src/data/repositories/in_memory_expense_repository.dart';
+import 'package:billlearn/src/domain/models/classification_result.dart';
 import 'package:billlearn/src/domain/models/raw_notification.dart';
+import 'package:billlearn/src/domain/models/transaction_candidate.dart';
 import 'package:billlearn/src/features/settings/settings_screen.dart';
 import 'package:billlearn/src/platform/android/android_event_bridge.dart';
 import 'package:flutter/material.dart';
@@ -89,6 +91,34 @@ void main() {
         createdAt: DateTime(2026, 5, 14, 12, 30),
       ),
     );
+    await repository.saveTransactionCandidate(
+      TransactionCandidate(
+        id: 'candidate-raw-1',
+        rawNotificationId: 'raw-1',
+        amount: 12300,
+        merchantName: '스타벅스',
+        paymentMethodHint: '신한카드',
+        occurredAt: DateTime(2026, 5, 14, 12, 30),
+        sourceType: RawNotificationSourceType.sms,
+        parseConfidence: 0.9,
+        parseStatus: ParseStatus.parsed,
+        createdAt: DateTime(2026, 5, 14, 12, 30),
+      ),
+    );
+    await repository.saveClassificationResult(
+      ClassificationResult(
+        id: 'classification-raw-1',
+        candidateIds: const ['candidate-raw-1'],
+        isDuplicate: false,
+        isTransferLike: false,
+        isExpense: true,
+        requiresReview: false,
+        reasonCodes: const ['stable_payment_signal'],
+        confidence: 0.9,
+        createdAt: DateTime(2026, 5, 14, 12, 30),
+        userFeedback: null,
+      ),
+    );
 
     await tester.pumpWidget(
       ProviderScope(
@@ -100,11 +130,18 @@ void main() {
       ),
     );
     await tester.pump();
+    await tester.pump();
+    await tester.pump();
 
     expect(find.text('수집 진단'), findsOneWidget);
     expect(find.text('최근 수집 1건'), findsOneWidget);
     expect(find.text('마지막 수집'), findsOneWidget);
     expect(find.text('[신한카드 승인] 12,300원 스타벅스'), findsOneWidget);
+    expect(find.text('파싱 결과'), findsOneWidget);
+    expect(find.text('스타벅스 · 12,300원'), findsOneWidget);
+    expect(find.text('판별 결과'), findsOneWidget);
+    expect(find.text('실제 지출 · 신뢰도 90%'), findsOneWidget);
+    expect(find.text('stable_payment_signal'), findsOneWidget);
 
     await repository.dispose();
   });

@@ -43,6 +43,16 @@ final transactionCandidateByIdProvider =
           .getTransactionCandidateById(id);
     });
 
+final transactionCandidatesForRawNotificationProvider =
+    FutureProvider.family<List<TransactionCandidate>, String>((
+      ref,
+      rawNotificationId,
+    ) {
+      return ref
+          .watch(expenseRepositoryProvider)
+          .getCandidatesForRawNotification(rawNotificationId);
+    });
+
 final classificationResultByCandidateIdProvider =
     FutureProvider.family<ClassificationResult?, String>((ref, candidateId) {
       return ref

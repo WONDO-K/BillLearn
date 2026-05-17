@@ -1,7 +1,10 @@
 import 'package:billlearn/src/app/app_providers.dart';
+import 'package:billlearn/src/domain/models/classification_result.dart';
 import 'package:billlearn/src/domain/models/raw_notification.dart';
+import 'package:billlearn/src/domain/models/transaction_candidate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -100,13 +103,13 @@ class SettingsScreen extends ConsumerWidget {
   }
 }
 
-class _CollectionDiagnosticsCard extends StatelessWidget {
+class _CollectionDiagnosticsCard extends ConsumerWidget {
   const _CollectionDiagnosticsCard({required this.rawNotifications});
 
   final AsyncValue<List<RawNotification>> rawNotifications;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -134,6 +137,8 @@ class _CollectionDiagnosticsCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(latest.first.body),
+                  const SizedBox(height: 12),
+                  _LatestProcessingDiagnostics(raw: latest.first),
                 ],
               ],
             );
@@ -148,6 +153,114 @@ class _CollectionDiagnosticsCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _LatestProcessingDiagnostics extends ConsumerWidget {
+  const _LatestProcessingDiagnostics({required this.raw});
+
+  final RawNotification raw;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final candidates = ref.watch(
+      transactionCandidatesForRawNotificationProvider(raw.id),
+    );
+
+    return candidates.when(
+      data: (items) {
+        if (items.isEmpty) {
+          return const Text('아직 파싱 후보가 없습니다.');
+        }
+        final candidate = items.first;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _CandidateDiagnostic(candidate: candidate),
+            const SizedBox(height: 12),
+            _ClassificationDiagnostic(candidateId: candidate.id),
+          ],
+        );
+      },
+      loading: () => const Text('파싱 결과를 불러오는 중입니다.'),
+      error: (error, stackTrace) => const Text('파싱 결과를 불러오지 못했어요.'),
+    );
+  }
+}
+
+class _CandidateDiagnostic extends StatelessWidget {
+  const _CandidateDiagnostic({required this.candidate});
+
+  final TransactionCandidate candidate;
+
+  @override
+  Widget build(BuildContext context) {
+    final currencyFormat = NumberFormat.decimalPattern('ko_KR');
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('파싱 결과', style: TextStyle(fontWeight: FontWeight.w700)),
+        const SizedBox(height: 4),
+        Text(
+          '${candidate.merchantName} · ${currencyFormat.format(candidate.amount)}원',
+        ),
+      ],
+    );
+  }
+}
+
+class _ClassificationDiagnostic extends ConsumerWidget {
+  const _ClassificationDiagnostic({required this.candidateId});
+
+  final String candidateId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final classification = ref.watch(
+      classificationResultByCandidateIdProvider(candidateId),
+    );
+
+    return classification.when(
+      data: (item) {
+        if (item == null) {
+          return const Text('아직 판별 결과가 없습니다.');
+        }
+        return _ClassificationDiagnosticContent(classification: item);
+      },
+      loading: () => const Text('판별 결과를 불러오는 중입니다.'),
+      error: (error, stackTrace) => const Text('판별 결과를 불러오지 못했어요.'),
+    );
+  }
+}
+
+class _ClassificationDiagnosticContent extends StatelessWidget {
+  const _ClassificationDiagnosticContent({required this.classification});
+
+  final ClassificationResult classification;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('판별 결과', style: TextStyle(fontWeight: FontWeight.w700)),
+        const SizedBox(height: 4),
+        Text(
+          '${classification.isExpense ? '실제 지출' : '지출 제외'} · '
+          '신뢰도 ${(classification.confidence * 100).round()}%',
+        ),
+        const SizedBox(height: 4),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final reasonCode in classification.reasonCodes)
+              Text(reasonCode),
+          ],
+        ),
+      ],
     );
   }
 }
