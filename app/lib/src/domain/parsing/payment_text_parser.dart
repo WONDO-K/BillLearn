@@ -7,7 +7,7 @@ class PaymentTextParser {
     r'\[?([가-힣A-Za-z\s]+(?:카드|페이|전))',
   );
   static final _merchantAfterAmountPattern = RegExp(
-    r'[\d,]+\s*원\s+([가-힣A-Za-z0-9&._ -]+)',
+    r'[\d,]+\s*원[\s/:-]*([가-힣A-Za-z0-9&._ -]+)',
   );
 
   TransactionCandidate parse(RawNotification raw) {
@@ -45,7 +45,10 @@ class PaymentTextParser {
         ?.group(1)
         ?.trim();
     if (merchantAfterAmount != null && merchantAfterAmount.isNotEmpty) {
-      return _cleanMerchantName(merchantAfterAmount);
+      final cleanedMerchant = _cleanMerchantName(merchantAfterAmount);
+      if (!_isMerchantNoise(cleanedMerchant)) {
+        return cleanedMerchant;
+      }
     }
 
     final beforeAmount = raw.body.substring(
@@ -85,6 +88,11 @@ class PaymentTextParser {
     return _cleanMerchantName(merchantTokens.last);
   }
 
+  bool _isMerchantNoise(String value) {
+    return value.isEmpty ||
+        const {'승인', '결제', '결제완료', '일시불', '할부'}.contains(value);
+  }
+
   String? _extractPaymentMethod(RawNotification raw) {
     final fromBody = _paymentMethodPattern.firstMatch(raw.body)?.group(1);
     final method = fromBody ?? raw.title;
@@ -117,6 +125,7 @@ class PaymentTextParser {
   String _cleanMerchantName(String value) {
     return value
         .replaceAll(RegExp(r'^(일시불|할부|승인|결제완료|결제)\s+'), '')
+        .replaceAll(RegExp(r'\s+(일시불|할부|승인|결제완료|결제)$'), '')
         .replaceAll(RegExp(r'\s+잔액.*$'), '')
         .replaceAll(RegExp(r'\s+승인번호\s+\S+.*$'), '')
         .replaceAll(RegExp(r'\s+승인\s+\S+.*$'), '')

@@ -82,5 +82,41 @@
     "expectedAmount": 23400,
     "expectedMerchantName": "배달의민족",
     "expectedPaymentMethodHint": "카카오페이"
+  },
+  {
+    "name": "hana_card_slash_separator_sms",
+    "sourceType": "sms",
+    "sourceApp": null,
+    "sender": "1800-1111",
+    "title": null,
+    "body": "[하나카드]승인 5,600원/스타벅스",
+    "expectedStatus": "parsed",
+    "expectedAmount": 5600,
+    "expectedMerchantName": "스타벅스",
+    "expectedPaymentMethodHint": "하나카드"
+  },
+  {
+    "name": "samsung_card_multiline_merchant_before_amount",
+    "sourceType": "push",
+    "sourceApp": "com.samsungcard",
+    "sender": null,
+    "title": "삼성카드",
+    "body": "삼성카드 승인\n이마트24\n8,900원",
+    "expectedStatus": "parsed",
+    "expectedAmount": 8900,
+    "expectedMerchantName": "이마트24",
+    "expectedPaymentMethodHint": "삼성카드"
+  },
+  {
+    "name": "kb_card_date_before_merchant",
+    "sourceType": "sms",
+    "sourceApp": null,
+    "sender": "1588-1688",
+    "title": null,
+    "body": "KB국민카드 2026.05.14 카카오택시 18,200원 승인",
+    "expectedStatus": "parsed",
+    "expectedAmount": 18200,
+    "expectedMerchantName": "카카오택시",
+    "expectedPaymentMethodHint": "KB국민카드"
   }
 ]
