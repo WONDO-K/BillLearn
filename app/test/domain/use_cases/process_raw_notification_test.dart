@@ -227,6 +227,54 @@ void main() {
   );
 
   test(
+    'does not reject user-confirmed expense when cancellation arrives later',
+    () async {
+      final repository = InMemoryExpenseRepository();
+      final useCase = ProcessRawNotification(repository: repository);
+      await repository.saveExpense(
+        ExpenseTransaction(
+          id: 'expense-user-confirmed',
+          amount: 12300,
+          merchantName: '스타벅스',
+          categoryId: null,
+          spentAt: DateTime(2026, 5, 14, 12, 30),
+          confirmationStatus: ConfirmationStatus.confirmed,
+          confirmedBy: ConfirmedBy.user,
+          candidateIds: const ['candidate-manual'],
+          createdAt: DateTime(2026, 5, 14, 12, 31),
+          updatedAt: DateTime(2026, 5, 14, 12, 31),
+          syncStatus: SyncStatus.localOnly,
+        ),
+      );
+      final cancellation = RawNotification(
+        id: 'cancel-user-confirmed',
+        sourceType: RawNotificationSourceType.sms,
+        sourceApp: null,
+        sender: '1588-0000',
+        title: null,
+        body: '[신한카드 승인취소] 12,300원 스타벅스',
+        receivedAt: DateTime(2026, 5, 14, 12, 45),
+        sourceHash: 'hash-cancel-user-confirmed',
+        createdAt: DateTime(2026, 5, 14, 12, 45),
+      );
+
+      await useCase(cancellation);
+
+      final expenses = await repository.watchExpenses().first;
+
+      expect(expenses, hasLength(1));
+      expect(expenses.single.confirmationStatus, ConfirmationStatus.confirmed);
+      expect(expenses.single.confirmedBy, ConfirmedBy.user);
+      expect(
+        expenses.single.candidateIds,
+        isNot(contains('candidate-${cancellation.id}')),
+      );
+
+      await repository.dispose();
+    },
+  );
+
+  test(
     'excludes local currency top-up and stores only final spending',
     () async {
       final repository = InMemoryExpenseRepository();

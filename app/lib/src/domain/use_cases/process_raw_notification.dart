@@ -80,6 +80,7 @@ class ProcessRawNotification {
             .where(
               (expense) =>
                   expense.confirmationStatus != ConfirmationStatus.rejected &&
+                  expense.confirmedBy == ConfirmedBy.rule &&
                   expense.amount == cancellationCandidate.amount &&
                   expense.merchantName == cancellationCandidate.merchantName &&
                   !expense.spentAt.isAfter(cancellationCandidate.occurredAt),
