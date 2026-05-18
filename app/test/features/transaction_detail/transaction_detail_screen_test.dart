@@ -40,7 +40,10 @@ void main() {
 
     expect(find.text('배달의민족'), findsOneWidget);
     expect(find.text('23,400원'), findsOneWidget);
-    expect(find.text('확정됨'), findsOneWidget);
+    expect(find.text('거래 정보'), findsOneWidget);
+    expect(find.text('이 거래가 실제 지출인가요?'), findsOneWidget);
+    expect(find.text('확정됨'), findsWidgets);
+    await tester.scrollUntilVisible(find.text('후보: candidate-1'), 300);
     expect(find.text('후보: candidate-1'), findsOneWidget);
 
     await repository.dispose();
@@ -105,6 +108,7 @@ void main() {
     await tester.pump();
     await tester.pump();
 
+    await tester.scrollUntilVisible(find.text('판별 근거'), 300);
     expect(find.text('판별 근거'), findsOneWidget);
     expect(find.text('후보: candidate-1'), findsOneWidget);
     expect(find.text('가맹점'), findsWidgets);
@@ -126,6 +130,9 @@ void main() {
   testWidgets('rejects expense when user says it is not spending', (
     tester,
   ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1000));
+    addTearDown(() async => tester.binding.setSurfaceSize(null));
+
     final repository = InMemoryExpenseRepository();
     await repository.saveExpense(
       ExpenseTransaction(
@@ -153,13 +160,14 @@ void main() {
     );
     await tester.pump();
 
+    await tester.scrollUntilVisible(find.text('아니요'), 300);
     await tester.tap(find.text('아니요'));
     await tester.pumpAndSettle();
 
     final expense = await repository.getExpenseById('expense-1');
     expect(expense?.confirmationStatus, ConfirmationStatus.rejected);
     expect(expense?.confirmedBy, ConfirmedBy.user);
-    expect(find.text('제외됨'), findsOneWidget);
+    expect(find.text('제외됨'), findsWidgets);
 
     await repository.dispose();
   });

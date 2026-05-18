@@ -95,7 +95,7 @@ void main() {
 
     expect(find.text('상세'), findsOneWidget);
     expect(find.text('동백전 충전'), findsOneWidget);
-    expect(find.text('확인 필요'), findsOneWidget);
+    expect(find.text('확인 필요'), findsWidgets);
     expect(find.widgetWithText(FilledButton, '맞아요'), findsOneWidget);
 
     await repository.dispose();

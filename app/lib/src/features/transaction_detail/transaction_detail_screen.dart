@@ -1,4 +1,5 @@
 import 'package:billlearn/src/app/app_providers.dart';
+import 'package:billlearn/src/app/app_theme.dart';
 import 'package:billlearn/src/domain/models/classification_result.dart';
 import 'package:billlearn/src/domain/models/expense_transaction.dart';
 import 'package:billlearn/src/domain/models/transaction_candidate.dart';
@@ -42,31 +43,20 @@ class _TransactionDetailContent extends StatelessWidget {
     final currencyFormat = NumberFormat.decimalPattern('ko_KR');
 
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
       children: [
-        Text(
-          expense.merchantName,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          '${currencyFormat.format(expense.amount)}원',
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800),
-        ),
-        const SizedBox(height: 24),
-        Card(
-          child: Column(
-            children: [
-              _DetailRow(label: '결제 시간', value: _formatDate(expense.spentAt)),
-              _DetailRow(label: '상태', value: _statusText(expense)),
-              _DetailRow(label: '확인 방식', value: _confirmedByText(expense)),
-              _DetailRow(label: '동기화', value: _syncStatusText(expense)),
-              if (expense.categoryId != null)
-                _DetailRow(label: '카테고리', value: expense.categoryId!),
-            ],
-          ),
+        _DetailHeroCard(expense: expense, currencyFormat: currencyFormat),
+        const SizedBox(height: 16),
+        _InfoCard(
+          title: '거래 정보',
+          children: [
+            _DetailRow(label: '결제 시간', value: _formatDate(expense.spentAt)),
+            _DetailRow(label: '상태', value: _statusText(expense)),
+            _DetailRow(label: '확인 방식', value: _confirmedByText(expense)),
+            _DetailRow(label: '동기화', value: _syncStatusText(expense)),
+            if (expense.categoryId != null)
+              _DetailRow(label: '카테고리', value: expense.categoryId!),
+          ],
         ),
         const SizedBox(height: 16),
         _FeedbackActions(expense: expense),
@@ -108,6 +98,92 @@ class _TransactionDetailContent extends StatelessWidget {
   }
 }
 
+class _DetailHeroCard extends StatelessWidget {
+  const _DetailHeroCard({required this.expense, required this.currencyFormat});
+
+  final ExpenseTransaction expense;
+  final NumberFormat currencyFormat;
+
+  @override
+  Widget build(BuildContext context) {
+    final isRejected =
+        expense.confirmationStatus == ConfirmationStatus.rejected;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.white, BillLearnColors.lightPurple],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white, width: 1.4),
+        boxShadow: [
+          BoxShadow(
+            color: BillLearnColors.mainPurple.withValues(alpha: 0.12),
+            blurRadius: 22,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(22),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    expense.merchantName,
+                    style: TextStyle(
+                      color: isRejected ? Colors.black45 : BillLearnColors.ink,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.4,
+                    ),
+                  ),
+                ),
+                _StatusBadge(status: expense.confirmationStatus),
+              ],
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              '자동 수집된 결제 알림에서 만든 거래입니다.',
+              style: TextStyle(
+                color: Colors.black54,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 22),
+            const Text(
+              '거래 금액',
+              style: TextStyle(
+                color: Colors.black54,
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '${currencyFormat.format(expense.amount)}원',
+              style: TextStyle(
+                color: isRejected ? Colors.black45 : BillLearnColors.ink,
+                decoration: isRejected ? TextDecoration.lineThrough : null,
+                fontSize: 34,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -0.6,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// 원천 알림이 최종 지출로 이어진 근거를 사용자에게 설명하는 상세 영역입니다.
 class _ClassificationEvidenceCard extends StatelessWidget {
   const _ClassificationEvidenceCard({required this.candidateIds});
 
@@ -115,24 +191,71 @@ class _ClassificationEvidenceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return _InfoCard(
+      title: '판별 근거',
+      subtitle: '파싱 후보와 분류 결과를 함께 보여줘요.',
+      children: [
+        if (candidateIds.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Text('연결된 후보가 없습니다'),
+          )
+        else
+          for (final candidateId in candidateIds) ...[
+            _CandidateEvidence(candidateId: candidateId),
+            if (candidateId != candidateIds.last) const Divider(height: 24),
+          ],
+      ],
+    );
+  }
+}
+
+class _InfoCard extends StatelessWidget {
+  const _InfoCard({required this.title, required this.children, this.subtitle});
+
+  final String title;
+  final String? subtitle;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(vertical: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              '판별 근거',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                title,
+                style: const TextStyle(
+                  color: BillLearnColors.ink,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
             ),
-            const SizedBox(height: 12),
-            if (candidateIds.isEmpty)
-              const Text('연결된 후보가 없습니다')
-            else
-              for (final candidateId in candidateIds) ...[
-                _CandidateEvidence(candidateId: candidateId),
-                if (candidateId != candidateIds.last) const Divider(height: 24),
-              ],
+            if (subtitle != null) ...[
+              const SizedBox(height: 4),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  subtitle!,
+                  style: const TextStyle(
+                    color: Colors.black54,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+            const SizedBox(height: 8),
+            ...children,
           ],
         ),
       ),
@@ -155,9 +278,15 @@ class _CandidateEvidence extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '후보: $candidateId',
-          style: const TextStyle(fontWeight: FontWeight.w700),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            '후보: $candidateId',
+            style: const TextStyle(
+              color: BillLearnColors.ink,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
         ),
         const SizedBox(height: 8),
         candidate.when(
@@ -167,8 +296,14 @@ class _CandidateEvidence extends ConsumerWidget {
             }
             return _CandidateSummary(candidate: item);
           },
-          loading: () => const Text('후보 정보를 불러오는 중입니다'),
-          error: (error, stackTrace) => const Text('후보 정보를 불러오지 못했어요'),
+          loading: () => const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text('후보 정보를 불러오는 중입니다'),
+          ),
+          error: (error, stackTrace) => const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text('후보 정보를 불러오지 못했어요'),
+          ),
         ),
         const SizedBox(height: 8),
         classification.when(
@@ -178,8 +313,14 @@ class _CandidateEvidence extends ConsumerWidget {
             }
             return _ClassificationSummary(classification: item);
           },
-          loading: () => const Text('판별 결과를 불러오는 중입니다'),
-          error: (error, stackTrace) => const Text('판별 결과를 불러오지 못했어요'),
+          loading: () => const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text('판별 결과를 불러오는 중입니다'),
+          ),
+          error: (error, stackTrace) => const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text('판별 결과를 불러오지 못했어요'),
+          ),
         ),
       ],
     );
@@ -239,35 +380,46 @@ class _ClassificationSummary extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            _EvidenceChip(label: classification.isExpense ? '실제 지출' : '지출 제외'),
-            _EvidenceChip(
-              label: classification.isDuplicate ? '중복 의심' : '중복 아님',
-            ),
-            _EvidenceChip(
-              label: classification.isTransferLike ? '이체/충전 의심' : '이체/충전 아님',
-            ),
-            _EvidenceChip(
-              label: classification.requiresReview ? '검토 필요' : '검토 불필요',
-            ),
-          ],
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _EvidenceChip(
+                label: classification.isExpense ? '실제 지출' : '지출 제외',
+              ),
+              _EvidenceChip(
+                label: classification.isDuplicate ? '중복 의심' : '중복 아님',
+              ),
+              _EvidenceChip(
+                label: classification.isTransferLike ? '이체/충전 의심' : '이체/충전 아님',
+              ),
+              _EvidenceChip(
+                label: classification.requiresReview ? '검토 필요' : '검토 불필요',
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 12),
-        Text(
-          '신뢰도 ${(classification.confidence * 100).round()}%',
-          style: const TextStyle(fontWeight: FontWeight.w700),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            '신뢰도 ${(classification.confidence * 100).round()}%',
+            style: const TextStyle(fontWeight: FontWeight.w900),
+          ),
         ),
         const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final reasonCode in classification.reasonCodes)
-              _ReasonCode(label: reasonCode),
-          ],
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final reasonCode in classification.reasonCodes)
+                _ReasonCode(label: reasonCode),
+            ],
+          ),
         ),
       ],
     );
@@ -281,7 +433,23 @@ class _EvidenceChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Chip(label: Text(label), visualDensity: VisualDensity.compact);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: BillLearnColors.lightPurple,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: BillLearnColors.mainPurple,
+            fontSize: 12,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -294,7 +462,7 @@ class _ReasonCode extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: const Color(0xFFEDE9FF),
+        color: BillLearnColors.softGray,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Padding(
@@ -315,22 +483,56 @@ class _FeedbackActions extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Row(
-      children: [
-        Expanded(
-          child: OutlinedButton(
-            onPressed: () => _updateStatus(ref, ConfirmationStatus.rejected),
-            child: const Text('아니요'),
-          ),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '이 거래가 실제 지출인가요?',
+              style: TextStyle(
+                color: BillLearnColors.ink,
+                fontSize: 17,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              '답변은 다음 자동 판별 품질을 높이는 기준으로 사용됩니다.',
+              style: TextStyle(
+                color: Colors.black54,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () =>
+                        _updateStatus(ref, ConfirmationStatus.rejected),
+                    child: const Text('아니요'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () =>
+                        _updateStatus(ref, ConfirmationStatus.confirmed),
+                    child: const Text('맞아요'),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: FilledButton(
-            onPressed: () => _updateStatus(ref, ConfirmationStatus.confirmed),
-            child: const Text('맞아요'),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -355,14 +557,70 @@ class _DetailRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            child: Text(label, style: const TextStyle(color: Colors.black54)),
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: Colors.black54,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w700)),
+          const SizedBox(width: 12),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: const TextStyle(
+                color: BillLearnColors.ink,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  const _StatusBadge({required this.status});
+
+  final ConfirmationStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = switch (status) {
+      ConfirmationStatus.confirmed => '확정됨',
+      ConfirmationStatus.needsReview => '확인 필요',
+      ConfirmationStatus.rejected => '제외됨',
+    };
+    final color = switch (status) {
+      ConfirmationStatus.confirmed => BillLearnColors.mainPurple,
+      ConfirmationStatus.needsReview => BillLearnColors.mainPurple,
+      ConfirmationStatus.rejected => Colors.black45,
+    };
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: color,
+            fontSize: 12,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
       ),
     );
   }
