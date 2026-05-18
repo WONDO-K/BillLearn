@@ -57,7 +57,7 @@ class _HistoryContent extends StatelessWidget {
         .fold<int>(0, (sum, expense) => sum + expense.amount);
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 120),
       children: [
         _HistorySummaryCard(
           confirmedTotal: confirmedTotal,

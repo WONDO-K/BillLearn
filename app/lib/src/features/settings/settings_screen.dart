@@ -18,7 +18,7 @@ class SettingsScreen extends ConsumerWidget {
     final rawNotifications = ref.watch(rawNotificationsProvider);
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 120),
       children: [
         const _SettingsHeroCard(),
         const SizedBox(height: 16),

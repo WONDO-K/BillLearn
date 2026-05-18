@@ -64,7 +64,7 @@ class _HomeContent extends StatelessWidget {
     final currencyFormat = NumberFormat.decimalPattern('ko_KR');
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 120),
       children: [
         _HomeHeroCard(
           total: total,
