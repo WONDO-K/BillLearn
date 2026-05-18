@@ -1,4 +1,5 @@
 import 'package:billlearn/src/app/app_providers.dart';
+import 'package:billlearn/src/app/app_theme.dart';
 import 'package:billlearn/src/domain/models/classification_result.dart';
 import 'package:billlearn/src/domain/models/raw_notification.dart';
 import 'package:billlearn/src/domain/models/transaction_candidate.dart';
@@ -17,85 +18,34 @@ class SettingsScreen extends ConsumerWidget {
     final rawNotifications = ref.watch(rawNotificationsProvider);
 
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
       children: [
-        const Text(
-          '설정',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
-        ),
-        const SizedBox(height: 20),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Expanded(
-                      child: Text(
-                        '알림 접근 권한',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                    _PermissionStatusChip(access: notificationAccess),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                const Text('카드 앱, 간편결제 앱의 결제 알림을 자동으로 읽기 위해 필요합니다.'),
-                const SizedBox(height: 12),
-                FilledButton(
-                  onPressed: () async {
-                    await ref
-                        .read(androidEventBridgeProvider)
-                        .openNotificationAccessSettings();
-                    ref.invalidate(notificationAccessEnabledProvider);
-                  },
-                  child: const Text('설정 열기'),
-                ),
-              ],
-            ),
-          ),
+        const _SettingsHeroCard(),
+        const SizedBox(height: 16),
+        _PermissionCard(
+          title: '알림 접근 권한',
+          description: '카드 앱, 간편결제 앱의 결제 알림을 자동으로 읽기 위해 필요합니다.',
+          access: notificationAccess,
+          actionLabel: '설정 열기',
+          actionStyle: _PermissionActionStyle.filled,
+          onPressed: () async {
+            await ref
+                .read(androidEventBridgeProvider)
+                .openNotificationAccessSettings();
+            ref.invalidate(notificationAccessEnabledProvider);
+          },
         ),
         const SizedBox(height: 12),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Expanded(
-                      child: Text(
-                        'SMS 권한',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                    _PermissionStatusChip(access: smsPermission),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                const Text('카드 승인 문자와 결제 문자를 자동 수집하기 위해 필요합니다.'),
-                const SizedBox(height: 12),
-                OutlinedButton(
-                  onPressed: () async {
-                    await ref
-                        .read(androidEventBridgeProvider)
-                        .requestSmsPermission();
-                    ref.invalidate(smsPermissionGrantedProvider);
-                  },
-                  child: const Text('SMS 권한 요청'),
-                ),
-              ],
-            ),
-          ),
+        _PermissionCard(
+          title: 'SMS 권한',
+          description: '카드 승인 문자와 결제 문자를 자동 수집하기 위해 필요합니다.',
+          access: smsPermission,
+          actionLabel: 'SMS 권한 요청',
+          actionStyle: _PermissionActionStyle.outlined,
+          onPressed: () async {
+            await ref.read(androidEventBridgeProvider).requestSmsPermission();
+            ref.invalidate(smsPermissionGrantedProvider);
+          },
         ),
         const SizedBox(height: 12),
         if (kDebugMode) ...[
@@ -108,40 +58,152 @@ class SettingsScreen extends ConsumerWidget {
   }
 }
 
+class _SettingsHeroCard extends StatelessWidget {
+  const _SettingsHeroCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.white, BillLearnColors.lightPurple],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white, width: 1.4),
+        boxShadow: [
+          BoxShadow(
+            color: BillLearnColors.mainPurple.withValues(alpha: 0.12),
+            blurRadius: 22,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: const Padding(
+        padding: EdgeInsets.all(22),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '설정',
+              style: TextStyle(
+                color: BillLearnColors.ink,
+                fontSize: 24,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -0.4,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              '결제 알림 수집 권한과 파이프라인 상태를 확인합니다.',
+              style: TextStyle(
+                color: Colors.black54,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+enum _PermissionActionStyle { filled, outlined }
+
+class _PermissionCard extends StatelessWidget {
+  const _PermissionCard({
+    required this.title,
+    required this.description,
+    required this.access,
+    required this.actionLabel,
+    required this.actionStyle,
+    required this.onPressed,
+  });
+
+  final String title;
+  final String description;
+  final AsyncValue<bool> access;
+  final String actionLabel;
+  final _PermissionActionStyle actionStyle;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final action = switch (actionStyle) {
+      _PermissionActionStyle.filled => FilledButton(
+        onPressed: onPressed,
+        child: Text(actionLabel),
+      ),
+      _PermissionActionStyle.outlined => OutlinedButton(
+        onPressed: onPressed,
+        child: Text(actionLabel),
+      ),
+    };
+
+    return _SoftCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(child: _CardTitle(title)),
+              _PermissionStatusChip(access: access),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            description,
+            style: const TextStyle(
+              color: Colors.black54,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 14),
+          action,
+        ],
+      ),
+    );
+  }
+}
+
 class _DebugToolsCard extends ConsumerWidget {
   const _DebugToolsCard();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              '개발자 도구',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+    return _SoftCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _CardTitle('개발자 도구'),
+          const SizedBox(height: 8),
+          const Text(
+            '에뮬레이터 UI 확인용 샘플 거래를 생성합니다.',
+            style: TextStyle(
+              color: Colors.black54,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
             ),
-            const SizedBox(height: 8),
-            const Text('에뮬레이터 UI 확인용 샘플 거래를 생성합니다.'),
-            const SizedBox(height: 12),
-            OutlinedButton(
-              onPressed: () async {
-                await ref.read(seedDebugSampleDataProvider).call();
-                ref.invalidate(expensesProvider);
-                ref.invalidate(rawNotificationsProvider);
+          ),
+          const SizedBox(height: 14),
+          OutlinedButton(
+            onPressed: () async {
+              await ref.read(seedDebugSampleDataProvider).call();
+              ref.invalidate(expensesProvider);
+              ref.invalidate(rawNotificationsProvider);
 
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('샘플 거래를 생성했습니다')),
-                  );
-                }
-              },
-              child: const Text('샘플 거래 생성'),
-            ),
-          ],
-        ),
+              if (context.mounted) {
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text('샘플 거래를 생성했습니다')));
+              }
+            },
+            child: const Text('샘플 거래 생성'),
+          ),
+        ],
       ),
     );
   }
@@ -154,47 +216,53 @@ class _CollectionDiagnosticsCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: rawNotifications.when(
-          data: (items) {
-            final latest = [...items]
-              ..sort((a, b) => b.receivedAt.compareTo(a.receivedAt));
+    return _SoftCard(
+      child: rawNotifications.when(
+        data: (items) {
+          final latest = [...items]
+            ..sort((a, b) => b.receivedAt.compareTo(a.receivedAt));
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const _CardTitle('수집 진단'),
+              const SizedBox(height: 8),
+              _MetricPill(label: '최근 수집', value: '${items.length}건'),
+              const SizedBox(height: 14),
+              if (latest.isEmpty)
                 const Text(
-                  '수집 진단',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 8),
-                Text('최근 수집 ${items.length}건'),
-                const SizedBox(height: 12),
-                if (latest.isEmpty)
-                  const Text('아직 수집된 원천 알림이 없습니다.')
-                else ...[
-                  const Text(
-                    '마지막 수집',
-                    style: TextStyle(fontWeight: FontWeight.w700),
+                  '아직 수집된 원천 알림이 없습니다.',
+                  style: TextStyle(
+                    color: Colors.black54,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
                   ),
-                  const SizedBox(height: 4),
-                  Text(latest.first.body),
-                  const SizedBox(height: 12),
-                  _LatestProcessingDiagnostics(raw: latest.first),
-                ],
+                )
+              else ...[
+                const _SubTitle('마지막 수집'),
+                const SizedBox(height: 6),
+                _RawBodyPreview(body: latest.first.body),
+                const SizedBox(height: 14),
+                _LatestProcessingDiagnostics(raw: latest.first),
               ],
-            );
-          },
-          loading: () => const ListTile(
-            title: Text('수집 진단'),
-            subtitle: Text('원천 알림 상태를 불러오는 중입니다.'),
-          ),
-          error: (error, stackTrace) => const ListTile(
-            title: Text('수집 진단'),
-            subtitle: Text('원천 알림 상태를 불러오지 못했어요.'),
-          ),
+            ],
+          );
+        },
+        loading: () => const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _CardTitle('수집 진단'),
+            SizedBox(height: 8),
+            Text('원천 알림 상태를 불러오는 중입니다.'),
+          ],
+        ),
+        error: (error, stackTrace) => const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _CardTitle('수집 진단'),
+            SizedBox(height: 8),
+            Text('원천 알림 상태를 불러오지 못했어요.'),
+          ],
         ),
       ),
     );
@@ -222,7 +290,7 @@ class _LatestProcessingDiagnostics extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _CandidateDiagnostic(candidate: candidate),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             _ClassificationDiagnostic(candidateId: candidate.id),
           ],
         );
@@ -245,10 +313,14 @@ class _CandidateDiagnostic extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('파싱 결과', style: TextStyle(fontWeight: FontWeight.w700)),
-        const SizedBox(height: 4),
+        const _SubTitle('파싱 결과'),
+        const SizedBox(height: 6),
         Text(
           '${candidate.merchantName} · ${currencyFormat.format(candidate.amount)}원',
+          style: const TextStyle(
+            color: BillLearnColors.ink,
+            fontWeight: FontWeight.w800,
+          ),
         ),
       ],
     );
@@ -289,19 +361,23 @@ class _ClassificationDiagnosticContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('판별 결과', style: TextStyle(fontWeight: FontWeight.w700)),
-        const SizedBox(height: 4),
+        const _SubTitle('판별 결과'),
+        const SizedBox(height: 6),
         Text(
           '${classification.isExpense ? '실제 지출' : '지출 제외'} · '
           '신뢰도 ${(classification.confidence * 100).round()}%',
+          style: const TextStyle(
+            color: BillLearnColors.ink,
+            fontWeight: FontWeight.w800,
+          ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 8),
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: [
             for (final reasonCode in classification.reasonCodes)
-              Text(reasonCode),
+              _ReasonCode(label: reasonCode),
           ],
         ),
       ],
@@ -317,17 +393,178 @@ class _PermissionStatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return access.when(
-      data: (enabled) => Chip(
-        label: Text(enabled ? '켜짐' : '꺼짐'),
-        visualDensity: VisualDensity.compact,
-      ),
+      data: (enabled) =>
+          _StatusPill(label: enabled ? '켜짐' : '꺼짐', active: enabled),
       loading: () => const SizedBox.square(
         dimension: 24,
         child: CircularProgressIndicator(strokeWidth: 2),
       ),
-      error: (error, stackTrace) => const Chip(
-        label: Text('확인 실패'),
-        visualDensity: VisualDensity.compact,
+      error: (error, stackTrace) =>
+          const _StatusPill(label: '확인 실패', active: false),
+    );
+  }
+}
+
+class _SoftCard extends StatelessWidget {
+  const _SoftCard({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Padding(padding: const EdgeInsets.all(16), child: child),
+    );
+  }
+}
+
+class _CardTitle extends StatelessWidget {
+  const _CardTitle(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: const TextStyle(
+        color: BillLearnColors.ink,
+        fontSize: 17,
+        fontWeight: FontWeight.w900,
+      ),
+    );
+  }
+}
+
+class _SubTitle extends StatelessWidget {
+  const _SubTitle(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: const TextStyle(
+        color: Colors.black54,
+        fontSize: 13,
+        fontWeight: FontWeight.w800,
+      ),
+    );
+  }
+}
+
+class _StatusPill extends StatelessWidget {
+  const _StatusPill({required this.label, required this.active});
+
+  final String label;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = active ? BillLearnColors.mainPurple : Colors.black45;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: color,
+            fontSize: 12,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MetricPill extends StatelessWidget {
+  const _MetricPill({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: BillLearnColors.lightPurple,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        child: Text(
+          '$label $value',
+          style: const TextStyle(
+            color: BillLearnColors.mainPurple,
+            fontSize: 12,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RawBodyPreview extends StatelessWidget {
+  const _RawBodyPreview({required this.body});
+
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: BillLearnColors.softGray,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Text(
+          body,
+          style: const TextStyle(
+            color: BillLearnColors.ink,
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ReasonCode extends StatelessWidget {
+  const _ReasonCode({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: BillLearnColors.softGray,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: BillLearnColors.ink,
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
       ),
     );
   }

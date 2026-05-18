@@ -133,6 +133,7 @@ void main() {
     await tester.pump();
     await tester.pump();
 
+    await tester.scrollUntilVisible(find.text('수집 진단'), 300);
     expect(find.text('수집 진단'), findsOneWidget);
     expect(find.text('최근 수집 1건'), findsOneWidget);
     expect(find.text('마지막 수집'), findsOneWidget);
