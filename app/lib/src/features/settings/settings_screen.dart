@@ -2,6 +2,7 @@ import 'package:billlearn/src/app/app_providers.dart';
 import 'package:billlearn/src/domain/models/classification_result.dart';
 import 'package:billlearn/src/domain/models/raw_notification.dart';
 import 'package:billlearn/src/domain/models/transaction_candidate.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -97,8 +98,51 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 12),
+        if (kDebugMode) ...[
+          const _DebugToolsCard(),
+          const SizedBox(height: 12),
+        ],
         _CollectionDiagnosticsCard(rawNotifications: rawNotifications),
       ],
+    );
+  }
+}
+
+class _DebugToolsCard extends ConsumerWidget {
+  const _DebugToolsCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '개발자 도구',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 8),
+            const Text('에뮬레이터 UI 확인용 샘플 거래를 생성합니다.'),
+            const SizedBox(height: 12),
+            OutlinedButton(
+              onPressed: () async {
+                await ref.read(seedDebugSampleDataProvider).call();
+                ref.invalidate(expensesProvider);
+                ref.invalidate(rawNotificationsProvider);
+
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('샘플 거래를 생성했습니다')),
+                  );
+                }
+              },
+              child: const Text('샘플 거래 생성'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

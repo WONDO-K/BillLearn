@@ -25,7 +25,7 @@ void main() {
           androidEventBridgeProvider.overrideWithValue(bridge),
           expenseRepositoryProvider.overrideWithValue(repository),
         ],
-        child: const MaterialApp(home: SettingsScreen()),
+        child: const MaterialApp(home: Scaffold(body: SettingsScreen())),
       ),
     );
     await tester.pump();
@@ -56,7 +56,7 @@ void main() {
           androidEventBridgeProvider.overrideWithValue(bridge),
           expenseRepositoryProvider.overrideWithValue(repository),
         ],
-        child: const MaterialApp(home: SettingsScreen()),
+        child: const MaterialApp(home: Scaffold(body: SettingsScreen())),
       ),
     );
     await tester.pump();
@@ -126,7 +126,7 @@ void main() {
           androidEventBridgeProvider.overrideWithValue(bridge),
           expenseRepositoryProvider.overrideWithValue(repository),
         ],
-        child: const MaterialApp(home: SettingsScreen()),
+        child: const MaterialApp(home: Scaffold(body: SettingsScreen())),
       ),
     );
     await tester.pump();
@@ -142,6 +142,49 @@ void main() {
     expect(find.text('판별 결과'), findsOneWidget);
     expect(find.text('실제 지출 · 신뢰도 90%'), findsOneWidget);
     expect(find.text('stable_payment_signal'), findsOneWidget);
+
+    await repository.dispose();
+  });
+
+  testWidgets('creates debug sample transactions from settings', (
+    tester,
+  ) async {
+    final bridge = _FakeAndroidEventBridge(
+      notificationAccessEnabled: true,
+      smsPermissionGranted: true,
+    );
+    final repository = InMemoryExpenseRepository();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          androidEventBridgeProvider.overrideWithValue(bridge),
+          expenseRepositoryProvider.overrideWithValue(repository),
+        ],
+        child: const MaterialApp(home: Scaffold(body: SettingsScreen())),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('개발자 도구'), findsOneWidget);
+    expect(find.text('샘플 거래 생성'), findsOneWidget);
+
+    await tester.tap(find.text('샘플 거래 생성'));
+    await tester.pump();
+
+    final expenses = await repository.getExpenses();
+    expect(expenses, hasLength(3));
+    expect(
+      expenses.map((expense) => expense.merchantName),
+      containsAll(['배달의민족', '동백전 충전', '스타벅스']),
+    );
+    expect(find.text('샘플 거래를 생성했습니다'), findsOneWidget);
+
+    await tester.tap(find.text('샘플 거래 생성'));
+    await tester.pump();
+
+    final reseededExpenses = await repository.getExpenses();
+    expect(reseededExpenses, hasLength(3));
 
     await repository.dispose();
   });
