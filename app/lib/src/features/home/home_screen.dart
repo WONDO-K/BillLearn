@@ -3,6 +3,7 @@ import 'package:billlearn/src/app/app_theme.dart';
 import 'package:billlearn/src/domain/models/expense_transaction.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
@@ -321,7 +322,51 @@ class _EmptyStateTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _SoftTile(title: title, subtitle: subtitle);
+    return _SoftTile(
+      title: title,
+      subtitle: subtitle,
+      leading: const _MascotBadge(),
+    );
+  }
+}
+
+class _MascotBadge extends StatelessWidget {
+  const _MascotBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    // 홈 빈 상태에서 브랜드 캐릭터를 작은 상태 아이콘처럼 사용한다.
+    // SVG 렌더링을 이 위젯 안에 모아두면 이후 안내 카드에도 재사용하기 쉽다.
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: BillLearnColors.lightPurple,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: BillLearnColors.mainPurple.withValues(alpha: 0.10),
+            blurRadius: 14,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(6),
+        child: SizedBox.square(
+          dimension: 52,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Transform.scale(
+              scale: 1.65,
+              child: SvgPicture.asset(
+                'assets/brand/brand_mascot.svg',
+                fit: BoxFit.cover,
+                semanticsLabel: 'BillLearn mascot',
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -329,12 +374,14 @@ class _SoftTile extends StatelessWidget {
   const _SoftTile({
     required this.title,
     required this.subtitle,
+    this.leading,
     this.trailing,
     this.onTap,
   });
 
   final String title;
   final String subtitle;
+  final Widget? leading;
   final Widget? trailing;
   final VoidCallback? onTap;
 
@@ -352,6 +399,7 @@ class _SoftTile extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Row(
               children: [
+                if (leading != null) ...[leading!, const SizedBox(width: 12)],
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

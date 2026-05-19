@@ -24,6 +24,7 @@ void main() {
     expect(find.text('자동 수집된 결제 알림에서 실제 소비만 남겼어요.'), findsOneWidget);
     expect(find.text('AI가 헷갈린 거래'), findsOneWidget);
     expect(find.text('최근 내역'), findsOneWidget);
+    expect(find.bySemanticsLabel('BillLearn mascot'), findsNWidgets(2));
 
     await repository.dispose();
   });

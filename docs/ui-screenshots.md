@@ -4,7 +4,7 @@
 
 - 기준 기기: Android emulator `emulator-5554`
 - 목적: 화면 polish 전후 비교, README/PR 설명, 다음 UI 개선 우선순위 판단
-- 데이터 상태: `설정 > 개발자 도구 > 샘플 거래 생성`으로 생성한 debug sample 포함
+- 데이터 상태: debug sample 포함 화면과 앱 데이터 초기화 후 빈 상태 화면을 함께 보관
 
 ## Current Main Flow
 
@@ -19,6 +19,18 @@
 - 확정 지출 총액 `29,000원`
 - 확인 필요 거래 `동백전 충전`
 - 최근 확정 지출 `스타벅스`, `배달의민족`
+
+#### Home Empty State
+
+앱 데이터가 없는 첫 실행 상태에서 빈 거래 안내와 브랜드 마스코트가 함께 노출되는지 확인한 캡처입니다.
+
+![BillLearn home empty state with mascot](screenshots/billlearn-home-mascot-empty.png)
+
+확인 포인트:
+
+- `AI가 헷갈린 거래`, `최근 내역` 빈 상태에 마스코트 SVG 노출
+- 결제 알림 수집 전에도 홈의 브랜드 인지 유지
+- bottom navigation과 빈 상태 카드 간 간섭 없음
 
 ### History
 
@@ -83,7 +95,7 @@
 
 ## Legacy Empty-State Captures
 
-초기 UI 상태 비교용으로 보관한 빈 상태 캡처입니다.
+초기 UI 상태 비교용으로 보관한 이전 빈 상태 캡처입니다.
 
 ![BillLearn home empty state](screenshots/billlearn-home.png)
 
@@ -91,5 +103,4 @@
 
 ## Current UI Gaps
 
-- 마스코트 SVG를 홈 빈 상태나 안내 카드에 활용하면 브랜드성이 더 강해집니다.
 - UI 스크린샷을 README에 일부 노출할지, 문서 링크만 유지할지 결정이 필요합니다.
