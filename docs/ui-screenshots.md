@@ -44,6 +44,18 @@
 - `맞아요` / `아니요` 피드백 동선
 - 파싱 후보와 판별 근거 진입부
 
+#### Transaction Detail Evidence
+
+상세 화면을 하단까지 스크롤했을 때 파싱 후보, 판별 결과, reason code가 노출되는지 확인한 캡처입니다.
+
+![BillLearn transaction detail evidence bottom](screenshots/billlearn-detail-evidence-bottom.png)
+
+확인 포인트:
+
+- 후보 ID와 가맹점/금액/결제 수단
+- `지출 제외`, `중복 아님`, `이체/충전 의심`, `검토 필요` 판별 chip
+- 신뢰도와 `debug_sample`, `stored_value_top_up` reason code
+
 ### Settings
 
 설정 화면은 권한 상태, 개발자용 샘플 데이터 생성, 수집 진단을 확인하는 화면입니다.
@@ -79,6 +91,5 @@
 
 ## Current UI Gaps
 
-- 상세 화면의 `판별 근거` 하단 전체를 보여주는 추가 스크롤 캡처가 필요합니다.
 - 마스코트 SVG를 홈 빈 상태나 안내 카드에 활용하면 브랜드성이 더 강해집니다.
 - UI 스크린샷을 README에 일부 노출할지, 문서 링크만 유지할지 결정이 필요합니다.
