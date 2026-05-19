@@ -153,6 +153,7 @@ Other useful commands:
 - [MVP Design Korean](docs/superpowers/specs/2026-05-14-billlearn-mvp-design.ko.md)
 - [Implementation Plan](docs/superpowers/plans/2026-05-14-billlearn-mvp-implementation.md)
 - [Implementation Plan Korean](docs/superpowers/plans/2026-05-14-billlearn-mvp-implementation.ko.md)
+- [UI Screenshots](docs/ui-screenshots.md)
 
 ---
 
