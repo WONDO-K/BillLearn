@@ -18,13 +18,13 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('홈'), findsOneWidget);
-    expect(find.text('이번 달 실제 지출'), findsOneWidget);
-    expect(find.text('영수증으로부터 배운 지출'), findsOneWidget);
-    expect(find.text('자동 수집된 결제 알림에서 실제 소비만 남겼어요.'), findsOneWidget);
-    expect(find.text('AI가 헷갈린 거래'), findsOneWidget);
-    expect(find.text('최근 내역'), findsOneWidget);
+    expect(find.text('홈'), findsWidgets);
+    expect(find.text('이번 달 총 지출'), findsOneWidget);
+    expect(find.text('예산 1,800,000원'), findsOneWidget);
+    expect(find.text('빌런의 인사이트'), findsOneWidget);
+    expect(find.text('최근 거래'), findsOneWidget);
     expect(find.bySemanticsLabel('BillLearn mascot'), findsNWidgets(2));
+    expect(find.bySemanticsLabel('BillLearn hero mascot'), findsOneWidget);
 
     await repository.dispose();
   });
@@ -89,9 +89,9 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('검토하러 가기'), findsOneWidget);
+    expect(find.text('확인하기 >'), findsOneWidget);
 
-    await tester.tap(find.text('검토하러 가기'));
+    await tester.tap(find.text('확인하기 >'));
     await tester.pumpAndSettle();
 
     expect(find.text('상세'), findsOneWidget);

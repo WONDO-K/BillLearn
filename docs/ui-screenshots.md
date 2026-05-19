@@ -14,6 +14,19 @@
 
 ![BillLearn home with sample data](screenshots/billlearn-home-seeded.png)
 
+#### Home Layout Review
+
+시안의 상단 지출 요약 영역과 최근 거래 카드 구조에 맞춰 재구성한 홈 화면 캡처입니다.
+
+![BillLearn home red yellow review](screenshots/billlearn-home-red-yellow-review.png)
+
+확인 포인트:
+
+- `이번 달 총 지출`, 예산, 진행률, 전월 대비 상태, 검토 알림 수를 한 카드에 배치
+- 히어로 카드 오른쪽에 브랜드 마스코트 노출
+- 최근 거래를 흰 rounded card 안에 compact list로 표시
+- 가맹점 로고는 아직 실제 로고가 아닌 카테고리/가맹점 초성 placeholder
+
 확인 포인트:
 
 - 확정 지출 총액 `29,000원`

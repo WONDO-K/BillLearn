@@ -63,19 +63,23 @@ class _HomeContent extends StatelessWidget {
     final recentExpenses = [...confirmedExpenses]
       ..sort((a, b) => b.spentAt.compareTo(a.spentAt));
     final currencyFormat = NumberFormat.decimalPattern('ko_KR');
+    // 예산 관리 기능은 아직 없으므로, 시안의 홈 카드 구조를 검증하기 위한 임시 월 예산값이다.
+    const monthlyBudget = 1800000;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 120),
       children: [
         _HomeHeroCard(
           total: total,
+          monthlyBudget: monthlyBudget,
           confirmedCount: confirmedExpenses.length,
           needsReviewCount: needsReview.length,
           currencyFormat: currencyFormat,
         ),
-        const SizedBox(height: 22),
+        const SizedBox(height: 18),
         _SectionHeader(
-          title: 'AI가 헷갈린 거래',
+          title: '빌런의 인사이트',
+          subtitle: '실제 지출인지 애매한 알림을 먼저 확인해요',
           actionLabel: needsReview.isEmpty ? null : '${needsReview.length}건',
         ),
         const SizedBox(height: 8),
@@ -91,8 +95,14 @@ class _HomeContent extends StatelessWidget {
               currencyFormat: currencyFormat,
             ),
           ),
-        const SizedBox(height: 22),
-        const _SectionHeader(title: '최근 내역'),
+        const SizedBox(height: 18),
+        _SectionHeader(
+          title: '최근 거래',
+          actionLabel: recentExpenses.isEmpty ? null : '더보기 >',
+          onActionTap: recentExpenses.isEmpty
+              ? null
+              : () => context.go('/history'),
+        ),
         const SizedBox(height: 8),
         if (recentExpenses.isEmpty)
           const _EmptyStateTile(
@@ -100,15 +110,11 @@ class _HomeContent extends StatelessWidget {
             subtitle: '실제 지출로 확정된 거래만 최근 내역에 표시됩니다.',
           )
         else
-          ...recentExpenses
-              .take(3)
-              .map(
-                (expense) => _RecentTransactionTile(
-                  expense: expense,
-                  subtitle: _formatDate(expense.spentAt),
-                  currencyFormat: currencyFormat,
-                ),
-              ),
+          _RecentTransactionsCard(
+            expenses: recentExpenses.take(3).toList(growable: false),
+            currencyFormat: currencyFormat,
+            formatDate: _formatDate,
+          ),
       ],
     );
   }
@@ -123,82 +129,137 @@ class _HomeContent extends StatelessWidget {
 class _HomeHeroCard extends StatelessWidget {
   const _HomeHeroCard({
     required this.total,
+    required this.monthlyBudget,
     required this.confirmedCount,
     required this.needsReviewCount,
     required this.currencyFormat,
   });
 
   final int total;
+  final int monthlyBudget;
   final int confirmedCount;
   final int needsReviewCount;
   final NumberFormat currencyFormat;
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [BillLearnColors.mainPurple, Color(0xFF8C73FF)],
-        ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: BillLearnColors.mainPurple.withValues(alpha: 0.22),
-            blurRadius: 24,
-            offset: const Offset(0, 14),
+    final budgetProgress = monthlyBudget == 0
+        ? 0.0
+        : (total / monthlyBudget).clamp(0.0, 1.0);
+    final budgetPercent = (budgetProgress * 100).round();
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(22),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [BillLearnColors.mainPurple, Color(0xFF8C73FF)],
           ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(22),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          boxShadow: [
+            BoxShadow(
+              color: BillLearnColors.mainPurple.withValues(alpha: 0.22),
+              blurRadius: 24,
+              offset: const Offset(0, 14),
+            ),
+          ],
+        ),
+        child: Stack(
           children: [
-            const Text(
-              '영수증으로부터 배운 지출',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
+            Positioned(
+              right: -8,
+              top: 18,
+              bottom: 8,
+              child: Opacity(
+                opacity: 0.92,
+                child: SizedBox(
+                  width: 134,
+                  child: Transform.scale(
+                    scale: 1.28,
+                    child: SvgPicture.asset(
+                      'assets/brand/brand_mascot.svg',
+                      fit: BoxFit.contain,
+                      semanticsLabel: 'BillLearn hero mascot',
+                    ),
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              '자동 수집된 결제 알림에서 실제 소비만 남겼어요.',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.82),
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 18, 118, 18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    '이번 달 총 지출',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${currencyFormat.format(total)}원',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    '예산 ${currencyFormat.format(monthlyBudget)}원',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.84),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(999),
+                          child: LinearProgressIndicator(
+                            minHeight: 7,
+                            value: budgetProgress,
+                            backgroundColor: Colors.white.withValues(
+                              alpha: 0.34,
+                            ),
+                            valueColor: const AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        '$budgetPercent%',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    confirmedCount == 0 ? '전월 데이터 수집 전' : '전월 대비 집계 준비 중',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.78),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  _HeroReviewLine(needsReviewCount: needsReviewCount),
+                ],
               ),
-            ),
-            const SizedBox(height: 22),
-            const Text(
-              '이번 달 실제 지출',
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '${currencyFormat.format(total)}원',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 34,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -0.6,
-              ),
-            ),
-            const SizedBox(height: 18),
-            Row(
-              children: [
-                _HeroMetric(label: '확정', value: '$confirmedCount건'),
-                const SizedBox(width: 10),
-                _HeroMetric(label: '검토', value: '$needsReviewCount건'),
-              ],
             ),
           ],
         ),
@@ -207,28 +268,78 @@ class _HomeHeroCard extends StatelessWidget {
   }
 }
 
-class _HeroMetric extends StatelessWidget {
-  const _HeroMetric({required this.label, required this.value});
+class _HeroReviewLine extends StatelessWidget {
+  const _HeroReviewLine({required this.needsReviewCount});
 
-  final String label;
-  final String value;
+  final int needsReviewCount;
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.16),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-        child: Text(
-          '$label $value',
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          needsReviewCount == 0 ? '검토할 알림 없음' : '검토할 알림 $needsReviewCount건',
           style: const TextStyle(
             color: Colors.white,
             fontSize: 12,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w900,
           ),
+        ),
+        const SizedBox(width: 3),
+        Icon(
+          Icons.keyboard_arrow_down_rounded,
+          color: Colors.white.withValues(alpha: 0.88),
+          size: 17,
+        ),
+      ],
+    );
+  }
+}
+
+class _MerchantMark extends StatelessWidget {
+  const _MerchantMark({
+    required this.merchantName,
+    required this.categoryId,
+    this.large = false,
+  });
+
+  final String merchantName;
+  final String? categoryId;
+  final bool large;
+
+  @override
+  Widget build(BuildContext context) {
+    final initial = merchantName.characters.isEmpty
+        ? '?'
+        : merchantName.characters.first;
+    final background = switch (categoryId) {
+      'food' => const Color(0xFFE8F7EF),
+      'cafe' => const Color(0xFFEAF4F1),
+      'shopping' => const Color(0xFFF2EEFF),
+      _ => BillLearnColors.lightPurple,
+    };
+    final foreground = switch (categoryId) {
+      'food' => const Color(0xFF1F8F5B),
+      'cafe' => const Color(0xFF26745D),
+      'shopping' => BillLearnColors.mainPurple,
+      _ => BillLearnColors.mainPurple,
+    };
+
+    return Container(
+      width: large ? 42 : 34,
+      height: large ? 42 : 34,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(large ? 14 : 12),
+      ),
+      child: Text(
+        initial,
+        style: TextStyle(
+          color: foreground,
+          fontSize: large ? 17 : 14,
+          fontWeight: FontWeight.w900,
         ),
       ),
     );
@@ -236,27 +347,60 @@ class _HeroMetric extends StatelessWidget {
 }
 
 class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.title, this.actionLabel});
+  const _SectionHeader({
+    required this.title,
+    this.subtitle,
+    this.actionLabel,
+    this.onActionTap,
+  });
 
   final String title;
+  final String? subtitle;
   final String? actionLabel;
+  final VoidCallback? onActionTap;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         Expanded(
-          child: Text(
-            title,
-            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              if (subtitle != null) ...[
+                const SizedBox(height: 3),
+                Text(
+                  subtitle!,
+                  style: const TextStyle(
+                    color: Colors.black54,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ],
           ),
         ),
         if (actionLabel != null)
-          Text(
-            actionLabel!,
-            style: const TextStyle(
-              color: BillLearnColors.mainPurple,
-              fontWeight: FontWeight.w800,
+          InkWell(
+            onTap: onActionTap,
+            borderRadius: BorderRadius.circular(999),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+              child: Text(
+                actionLabel!,
+                style: const TextStyle(
+                  color: BillLearnColors.mainPurple,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
             ),
           ),
       ],
@@ -278,8 +422,12 @@ class _ReviewTransactionTile extends StatelessWidget {
     return _SoftTile(
       title: expense.merchantName,
       subtitle: '${currencyFormat.format(expense.amount)}원 · 실제 지출인지 확인해주세요',
+      leading: _MerchantMark(
+        merchantName: expense.merchantName,
+        categoryId: expense.categoryId,
+      ),
       trailing: const Text(
-        '검토하러 가기',
+        '확인하기 >',
         style: TextStyle(
           color: BillLearnColors.mainPurple,
           fontWeight: FontWeight.w900,
@@ -303,12 +451,145 @@ class _RecentTransactionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _SoftTile(
-      title: expense.merchantName,
+    return _RecentTransactionRow(
+      expense: expense,
       subtitle: subtitle,
-      trailing: Text(
-        '${currencyFormat.format(expense.amount)}원',
-        style: const TextStyle(fontWeight: FontWeight.w900),
+      currencyFormat: currencyFormat,
+    );
+  }
+}
+
+class _RecentTransactionsCard extends StatelessWidget {
+  const _RecentTransactionsCard({
+    required this.expenses,
+    required this.currencyFormat,
+    required this.formatDate,
+  });
+
+  final List<ExpenseTransaction> expenses;
+  final NumberFormat currencyFormat;
+  final String Function(DateTime value) formatDate;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(20),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 16, 14, 4),
+        child: Column(
+          children: [
+            for (final expense in expenses)
+              _RecentTransactionTile(
+                expense: expense,
+                subtitle: formatDate(expense.spentAt),
+                currencyFormat: currencyFormat,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RecentTransactionRow extends StatelessWidget {
+  const _RecentTransactionRow({
+    required this.expense,
+    required this.subtitle,
+    required this.currencyFormat,
+  });
+
+  final ExpenseTransaction expense;
+  final String subtitle;
+  final NumberFormat currencyFormat;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 13),
+      child: Row(
+        children: [
+          _MerchantMark(
+            merchantName: expense.merchantName,
+            categoryId: expense.categoryId,
+            large: true,
+          ),
+          const SizedBox(width: 11),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        expense.merchantName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                    if (expense.categoryId != null) ...[
+                      const SizedBox(width: 8),
+                      _CategoryChip(categoryId: expense.categoryId!),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    color: Colors.black54,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            '${currencyFormat.format(expense.amount)}원',
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CategoryChip extends StatelessWidget {
+  const _CategoryChip({required this.categoryId});
+
+  final String categoryId;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = switch (categoryId) {
+      'food' => '배달/음식',
+      'cafe' => '카페',
+      'shopping' => '쇼핑',
+      _ => '기타',
+    };
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: BillLearnColors.lightPurple.withValues(alpha: 0.75),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: BillLearnColors.mainPurple,
+            fontSize: 9,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
       ),
     );
   }
