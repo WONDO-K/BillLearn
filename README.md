@@ -154,6 +154,7 @@ Other useful commands:
 - [Implementation Plan](docs/superpowers/plans/2026-05-14-billlearn-mvp-implementation.md)
 - [Implementation Plan Korean](docs/superpowers/plans/2026-05-14-billlearn-mvp-implementation.ko.md)
 - [UI Screenshots](docs/ui-screenshots.md)
+- [UI/UX Review 2026-05-19](docs/ui-ux-review-2026-05-19.md)
 
 ---
 
