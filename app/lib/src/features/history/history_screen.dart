@@ -1,6 +1,7 @@
 import 'package:billlearn/src/app/app_providers.dart';
 import 'package:billlearn/src/app/app_theme.dart';
 import 'package:billlearn/src/domain/models/expense_transaction.dart';
+import 'package:billlearn/src/features/shared/merchant_visuals.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -55,41 +56,121 @@ class _HistoryContent extends StatelessWidget {
               expense.confirmationStatus == ConfirmationStatus.confirmed,
         )
         .fold<int>(0, (sum, expense) => sum + expense.amount);
+    final groupedExpenses = _groupByDate(sortedExpenses);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 120),
       children: [
+        const _HistoryFilterRow(),
+        const SizedBox(height: 14),
         _HistorySummaryCard(
           confirmedTotal: confirmedTotal,
           confirmedCount: confirmedCount,
           reviewCount: reviewCount,
           rejectedCount: rejectedCount,
+          totalCount: expenses.length,
           currencyFormat: currencyFormat,
         ),
-        const SizedBox(height: 22),
-        const _SectionHeader(title: '정리된 지출 흐름'),
-        const SizedBox(height: 8),
+        const SizedBox(height: 20),
         if (sortedExpenses.isEmpty)
           const _EmptyStateTile(
             title: '저장된 지출이 없습니다',
             subtitle: '결제 알림과 문자를 수집하면 내역이 표시됩니다.',
           )
         else
-          ...sortedExpenses.map(
-            (expense) => _HistoryTransactionTile(
-              expense: expense,
-              subtitle: _formatDate(expense.spentAt),
+          for (final group in groupedExpenses.entries) ...[
+            _DateHeader(date: group.key),
+            const SizedBox(height: 8),
+            _HistoryDateCard(
+              expenses: group.value,
               currencyFormat: currencyFormat,
+              formatTime: _formatTime,
             ),
-          ),
+            const SizedBox(height: 18),
+          ],
       ],
     );
   }
 
-  String _formatDate(DateTime value) {
+  Map<DateTime, List<ExpenseTransaction>> _groupByDate(
+    List<ExpenseTransaction> values,
+  ) {
+    final grouped = <DateTime, List<ExpenseTransaction>>{};
+    for (final expense in values) {
+      final key = DateTime(
+        expense.spentAt.year,
+        expense.spentAt.month,
+        expense.spentAt.day,
+      );
+      grouped.putIfAbsent(key, () => []).add(expense);
+    }
+    return grouped;
+  }
+
+  String _formatTime(DateTime value) {
     final hour = value.hour.toString().padLeft(2, '0');
     final minute = value.minute.toString().padLeft(2, '0');
-    return '${value.month}월 ${value.day}일 $hour:$minute';
+    return '$hour:$minute';
+  }
+}
+
+class _HistoryFilterRow extends StatelessWidget {
+  const _HistoryFilterRow();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const _FilterPill(label: '잔여 기간'),
+        const SizedBox(width: 8),
+        const _FilterPill(label: '전체 카테고리'),
+        const Spacer(),
+        IconButton(
+          tooltip: '검색',
+          onPressed: () {},
+          icon: const Icon(Icons.search_rounded, color: BillLearnColors.ink),
+        ),
+      ],
+    );
+  }
+}
+
+class _FilterPill extends StatelessWidget {
+  const _FilterPill({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE7E3F5)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                color: BillLearnColors.ink,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(width: 5),
+            const Icon(
+              Icons.keyboard_arrow_down_rounded,
+              size: 16,
+              color: Colors.black54,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -99,6 +180,7 @@ class _HistorySummaryCard extends StatelessWidget {
     required this.confirmedCount,
     required this.reviewCount,
     required this.rejectedCount,
+    required this.totalCount,
     required this.currencyFormat,
   });
 
@@ -106,6 +188,7 @@ class _HistorySummaryCard extends StatelessWidget {
   final int confirmedCount;
   final int reviewCount;
   final int rejectedCount;
+  final int totalCount;
   final NumberFormat currencyFormat;
 
   @override
@@ -117,7 +200,7 @@ class _HistorySummaryCard extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [Colors.white, BillLearnColors.lightPurple],
         ),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: Colors.white, width: 1.4),
         boxShadow: [
           BoxShadow(
@@ -128,48 +211,44 @@ class _HistorySummaryCard extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(22),
+        padding: const EdgeInsets.all(18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              '내역',
-              style: TextStyle(
-                color: BillLearnColors.ink,
-                fontSize: 24,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -0.4,
-              ),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              '수집된 알림을 실제 지출, 확인 필요, 제외 거래로 나눠 보여드려요.',
-              style: TextStyle(
-                color: Colors.black54,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              '확정 지출',
+              '전체 지출',
               style: TextStyle(
                 color: Colors.black54,
                 fontSize: 12,
                 fontWeight: FontWeight.w800,
               ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              '${currencyFormat.format(confirmedTotal)}원',
-              style: const TextStyle(
-                color: BillLearnColors.ink,
-                fontSize: 30,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -0.6,
-              ),
+            const SizedBox(height: 8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: Text(
+                    '${currencyFormat.format(confirmedTotal)}원',
+                    style: const TextStyle(
+                      color: BillLearnColors.ink,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.4,
+                    ),
+                  ),
+                ),
+                Text(
+                  '$totalCount건',
+                  style: const TextStyle(
+                    color: Colors.black54,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 14),
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -214,22 +293,60 @@ class _SummaryPill extends StatelessWidget {
   }
 }
 
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.title});
+class _DateHeader extends StatelessWidget {
+  const _DateHeader({required this.date});
 
-  final String title;
+  final DateTime date;
 
   @override
   Widget build(BuildContext context) {
+    const weekdays = ['월', '화', '수', '목', '금', '토', '일'];
     return Text(
-      title,
-      style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
+      '${date.month}월 ${date.day}일 (${weekdays[date.weekday - 1]})',
+      style: const TextStyle(
+        color: BillLearnColors.ink,
+        fontSize: 15,
+        fontWeight: FontWeight.w900,
+      ),
     );
   }
 }
 
-class _HistoryTransactionTile extends StatelessWidget {
-  const _HistoryTransactionTile({
+class _HistoryDateCard extends StatelessWidget {
+  const _HistoryDateCard({
+    required this.expenses,
+    required this.currencyFormat,
+    required this.formatTime,
+  });
+
+  final List<ExpenseTransaction> expenses;
+  final NumberFormat currencyFormat;
+  final String Function(DateTime value) formatTime;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(18),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 16, 14, 4),
+        child: Column(
+          children: [
+            for (final expense in expenses)
+              _HistoryTransactionRow(
+                expense: expense,
+                subtitle: formatTime(expense.spentAt),
+                currencyFormat: currencyFormat,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HistoryTransactionRow extends StatelessWidget {
+  const _HistoryTransactionRow({
     required this.expense,
     required this.subtitle,
     required this.currencyFormat,
@@ -246,77 +363,78 @@ class _HistoryTransactionTile extends StatelessWidget {
     final needsReview =
         expense.confirmationStatus == ConfirmationStatus.needsReview;
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Material(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        child: InkWell(
-          onTap: () => context.push('/transactions/${expense.id}'),
-          borderRadius: BorderRadius.circular(18),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              expense.merchantName,
-                              style: TextStyle(
-                                color: isRejected
-                                    ? Colors.black45
-                                    : BillLearnColors.ink,
-                                fontSize: 15,
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                          ),
-                          if (expense.confirmationStatus !=
-                              ConfirmationStatus.confirmed)
-                            _StatusChip(expense: expense),
-                        ],
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        subtitle,
-                        style: const TextStyle(
-                          color: Colors.black54,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      if (needsReview)
-                        const Padding(
-                          padding: EdgeInsets.only(top: 5),
-                          child: Text(
-                            '실제 지출인지 확인해주세요',
-                            style: TextStyle(
-                              color: BillLearnColors.mainPurple,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  '${currencyFormat.format(expense.amount)}원',
-                  style: TextStyle(
-                    color: isRejected ? Colors.black45 : BillLearnColors.ink,
-                    decoration: isRejected ? TextDecoration.lineThrough : null,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ],
+    return InkWell(
+      onTap: () => context.push('/transactions/${expense.id}'),
+      borderRadius: BorderRadius.circular(14),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 13),
+        child: Row(
+          children: [
+            MerchantMark(
+              merchantName: expense.merchantName,
+              categoryId: expense.categoryId,
+              large: true,
             ),
-          ),
+            const SizedBox(width: 11),
+            Expanded(
+              child: Opacity(
+                opacity: isRejected ? 0.58 : 1,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            expense.merchantName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: BillLearnColors.ink,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                        if (expense.categoryId != null) ...[
+                          const SizedBox(width: 7),
+                          CategoryChip(categoryId: expense.categoryId!),
+                        ],
+                        if (expense.confirmationStatus !=
+                            ConfirmationStatus.confirmed) ...[
+                          const SizedBox(width: 7),
+                          _StatusChip(expense: expense),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      needsReview ? '$subtitle · 실제 지출인지 확인해주세요' : subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: needsReview
+                            ? BillLearnColors.mainPurple
+                            : Colors.black54,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              '${currencyFormat.format(expense.amount)}원',
+              style: TextStyle(
+                color: isRejected ? Colors.black45 : BillLearnColors.ink,
+                decoration: isRejected ? TextDecoration.lineThrough : null,
+                fontSize: 14,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -74,8 +74,18 @@
 
 ![BillLearn history with sample data](screenshots/billlearn-history-seeded.png)
 
+#### History Reference Layout
+
+시안의 내역 화면 구조에 맞춰 필터 row, compact summary, 일자 그룹, 거래 묶음 카드를 반영한 캡처입니다.
+
+![BillLearn history reference layout](screenshots/billlearn-history-reference-layout.png)
+
 확인 포인트:
 
+- `잔여 기간`, `전체 카테고리`, 검색 아이콘으로 상단 탐색 구조를 배치
+- 전체 지출 합계와 거래 건수를 compact summary card로 표시
+- 날짜 헤더 아래 같은 날짜 거래를 하나의 흰 rounded card로 묶음
+- 홈과 같은 merchant fallback icon/category chip을 내역에서도 사용
 - 확정 지출 `2건`
 - 검토 거래 `1건`
 - `확인 필요` 상태 chip과 안내 문구

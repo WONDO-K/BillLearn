@@ -1,6 +1,7 @@
 import 'package:billlearn/src/app/app_providers.dart';
 import 'package:billlearn/src/app/app_theme.dart';
 import 'package:billlearn/src/domain/models/expense_transaction.dart';
+import 'package:billlearn/src/features/shared/merchant_visuals.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -297,142 +298,6 @@ class _HeroReviewLine extends StatelessWidget {
   }
 }
 
-class _MerchantMark extends StatelessWidget {
-  const _MerchantMark({
-    required this.merchantName,
-    required this.categoryId,
-    this.large = false,
-  });
-
-  final String merchantName;
-  final String? categoryId;
-  final bool large;
-
-  @override
-  Widget build(BuildContext context) {
-    final visual = _MerchantVisual.from(merchantName, categoryId);
-
-    return Container(
-      width: large ? 42 : 34,
-      height: large ? 42 : 34,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: visual.background,
-        shape: visual.circular ? BoxShape.circle : BoxShape.rectangle,
-        borderRadius: visual.circular
-            ? null
-            : BorderRadius.circular(large ? 14 : 12),
-      ),
-      child: Text(
-        visual.label,
-        style: TextStyle(
-          color: visual.foreground,
-          fontSize: large ? visual.largeFontSize : visual.smallFontSize,
-          fontWeight: FontWeight.w900,
-          letterSpacing: visual.letterSpacing,
-        ),
-      ),
-    );
-  }
-}
-
-class _MerchantVisual {
-  const _MerchantVisual({
-    required this.label,
-    required this.background,
-    required this.foreground,
-    this.circular = false,
-    this.largeFontSize = 17,
-    this.smallFontSize = 14,
-    this.letterSpacing = -0.2,
-  });
-
-  final String label;
-  final Color background;
-  final Color foreground;
-  final bool circular;
-  final double largeFontSize;
-  final double smallFontSize;
-  final double letterSpacing;
-
-  factory _MerchantVisual.from(String merchantName, String? categoryId) {
-    final normalized = merchantName.replaceAll(' ', '').toLowerCase();
-
-    // 정식 로고 asset이 없는 MVP 단계에서는 가맹점별 색/라벨 fallback으로 시안의 로고 밀도를 맞춘다.
-    if (normalized.contains('배달의민족') || normalized.contains('배민')) {
-      return const _MerchantVisual(
-        label: '배민',
-        background: Color(0xFF48C7C2),
-        foreground: Colors.white,
-        circular: true,
-        largeFontSize: 12,
-        smallFontSize: 10,
-        letterSpacing: -1.0,
-      );
-    }
-    if (normalized.contains('스타벅스')) {
-      return const _MerchantVisual(
-        label: '★',
-        background: Color(0xFF006241),
-        foreground: Colors.white,
-        circular: true,
-        largeFontSize: 18,
-        smallFontSize: 15,
-      );
-    }
-    if (normalized.contains('네이버') || normalized.contains('naver')) {
-      return const _MerchantVisual(
-        label: 'N',
-        background: Color(0xFF03C75A),
-        foreground: Colors.white,
-        largeFontSize: 18,
-        smallFontSize: 15,
-      );
-    }
-    if (normalized.contains('쿠팡') || normalized.contains('coupang')) {
-      return const _MerchantVisual(
-        label: 'c',
-        background: Color(0xFFD22F27),
-        foreground: Colors.white,
-        circular: true,
-        largeFontSize: 19,
-        smallFontSize: 15,
-      );
-    }
-    if (normalized.contains('동백전')) {
-      return const _MerchantVisual(
-        label: '동',
-        background: BillLearnColors.lightPurple,
-        foreground: BillLearnColors.mainPurple,
-        largeFontSize: 16,
-        smallFontSize: 13,
-      );
-    }
-
-    final initial = merchantName.characters.isEmpty
-        ? '?'
-        : merchantName.characters.first;
-    final background = switch (categoryId) {
-      'food' => const Color(0xFFE8F7EF),
-      'cafe' => const Color(0xFFEAF4F1),
-      'shopping' => const Color(0xFFF2EEFF),
-      _ => BillLearnColors.lightPurple,
-    };
-    final foreground = switch (categoryId) {
-      'food' => const Color(0xFF1F8F5B),
-      'cafe' => const Color(0xFF26745D),
-      'shopping' => BillLearnColors.mainPurple,
-      _ => BillLearnColors.mainPurple,
-    };
-
-    return _MerchantVisual(
-      label: initial,
-      background: background,
-      foreground: foreground,
-    );
-  }
-}
-
 class _SectionHeader extends StatelessWidget {
   const _SectionHeader({
     required this.title,
@@ -509,7 +374,7 @@ class _ReviewTransactionTile extends StatelessWidget {
     return _SoftTile(
       title: expense.merchantName,
       subtitle: '${currencyFormat.format(expense.amount)}원 · 실제 지출인지 확인해주세요',
-      leading: _MerchantMark(
+      leading: MerchantMark(
         merchantName: expense.merchantName,
         categoryId: expense.categoryId,
       ),
@@ -596,7 +461,7 @@ class _RecentTransactionRow extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 13),
       child: Row(
         children: [
-          _MerchantMark(
+          MerchantMark(
             merchantName: expense.merchantName,
             categoryId: expense.categoryId,
             large: true,
@@ -621,7 +486,7 @@ class _RecentTransactionRow extends StatelessWidget {
                     ),
                     if (expense.categoryId != null) ...[
                       const SizedBox(width: 8),
-                      _CategoryChip(categoryId: expense.categoryId!),
+                      CategoryChip(categoryId: expense.categoryId!),
                     ],
                   ],
                 ),
@@ -643,40 +508,6 @@ class _RecentTransactionRow extends StatelessWidget {
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _CategoryChip extends StatelessWidget {
-  const _CategoryChip({required this.categoryId});
-
-  final String categoryId;
-
-  @override
-  Widget build(BuildContext context) {
-    final label = switch (categoryId) {
-      'food' => '배달/음식',
-      'cafe' => '카페',
-      'shopping' => '쇼핑',
-      _ => '기타',
-    };
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: BillLearnColors.lightPurple.withValues(alpha: 0.75),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-        child: Text(
-          label,
-          style: const TextStyle(
-            color: BillLearnColors.mainPurple,
-            fontSize: 9,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
       ),
     );
   }

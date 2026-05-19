@@ -34,11 +34,16 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('내역'), findsOneWidget);
-    expect(find.text('정리된 지출 흐름'), findsOneWidget);
+    expect(find.text('잔여 기간'), findsOneWidget);
+    expect(find.text('전체 카테고리'), findsOneWidget);
+    expect(find.text('전체 지출'), findsOneWidget);
+    expect(find.text('45,400원'), findsOneWidget);
+    expect(find.text('2건'), findsOneWidget);
     expect(find.text('확정 2건'), findsOneWidget);
+    expect(find.text('5월 15일 (금)'), findsOneWidget);
     expect(find.text('네이버페이'), findsOneWidget);
     expect(find.text('39,800원'), findsOneWidget);
+    expect(find.text('5월 14일 (목)'), findsOneWidget);
     expect(find.text('스타벅스'), findsOneWidget);
     expect(find.text('5,600원'), findsOneWidget);
 
@@ -95,7 +100,7 @@ void main() {
 
     expect(find.text('계좌이체 의심'), findsOneWidget);
     expect(find.text('확인 필요'), findsOneWidget);
-    expect(find.text('실제 지출인지 확인해주세요'), findsOneWidget);
+    expect(find.textContaining('실제 지출인지 확인해주세요'), findsOneWidget);
 
     await repository.dispose();
   });
