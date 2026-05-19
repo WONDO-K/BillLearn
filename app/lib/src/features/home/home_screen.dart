@@ -310,6 +310,105 @@ class _MerchantMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final visual = _MerchantVisual.from(merchantName, categoryId);
+
+    return Container(
+      width: large ? 42 : 34,
+      height: large ? 42 : 34,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: visual.background,
+        shape: visual.circular ? BoxShape.circle : BoxShape.rectangle,
+        borderRadius: visual.circular
+            ? null
+            : BorderRadius.circular(large ? 14 : 12),
+      ),
+      child: Text(
+        visual.label,
+        style: TextStyle(
+          color: visual.foreground,
+          fontSize: large ? visual.largeFontSize : visual.smallFontSize,
+          fontWeight: FontWeight.w900,
+          letterSpacing: visual.letterSpacing,
+        ),
+      ),
+    );
+  }
+}
+
+class _MerchantVisual {
+  const _MerchantVisual({
+    required this.label,
+    required this.background,
+    required this.foreground,
+    this.circular = false,
+    this.largeFontSize = 17,
+    this.smallFontSize = 14,
+    this.letterSpacing = -0.2,
+  });
+
+  final String label;
+  final Color background;
+  final Color foreground;
+  final bool circular;
+  final double largeFontSize;
+  final double smallFontSize;
+  final double letterSpacing;
+
+  factory _MerchantVisual.from(String merchantName, String? categoryId) {
+    final normalized = merchantName.replaceAll(' ', '').toLowerCase();
+
+    // 정식 로고 asset이 없는 MVP 단계에서는 가맹점별 색/라벨 fallback으로 시안의 로고 밀도를 맞춘다.
+    if (normalized.contains('배달의민족') || normalized.contains('배민')) {
+      return const _MerchantVisual(
+        label: '배민',
+        background: Color(0xFF48C7C2),
+        foreground: Colors.white,
+        circular: true,
+        largeFontSize: 12,
+        smallFontSize: 10,
+        letterSpacing: -1.0,
+      );
+    }
+    if (normalized.contains('스타벅스')) {
+      return const _MerchantVisual(
+        label: '★',
+        background: Color(0xFF006241),
+        foreground: Colors.white,
+        circular: true,
+        largeFontSize: 18,
+        smallFontSize: 15,
+      );
+    }
+    if (normalized.contains('네이버') || normalized.contains('naver')) {
+      return const _MerchantVisual(
+        label: 'N',
+        background: Color(0xFF03C75A),
+        foreground: Colors.white,
+        largeFontSize: 18,
+        smallFontSize: 15,
+      );
+    }
+    if (normalized.contains('쿠팡') || normalized.contains('coupang')) {
+      return const _MerchantVisual(
+        label: 'c',
+        background: Color(0xFFD22F27),
+        foreground: Colors.white,
+        circular: true,
+        largeFontSize: 19,
+        smallFontSize: 15,
+      );
+    }
+    if (normalized.contains('동백전')) {
+      return const _MerchantVisual(
+        label: '동',
+        background: BillLearnColors.lightPurple,
+        foreground: BillLearnColors.mainPurple,
+        largeFontSize: 16,
+        smallFontSize: 13,
+      );
+    }
+
     final initial = merchantName.characters.isEmpty
         ? '?'
         : merchantName.characters.first;
@@ -326,22 +425,10 @@ class _MerchantMark extends StatelessWidget {
       _ => BillLearnColors.mainPurple,
     };
 
-    return Container(
-      width: large ? 42 : 34,
-      height: large ? 42 : 34,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(large ? 14 : 12),
-      ),
-      child: Text(
-        initial,
-        style: TextStyle(
-          color: foreground,
-          fontSize: large ? 17 : 14,
-          fontWeight: FontWeight.w900,
-        ),
-      ),
+    return _MerchantVisual(
+      label: initial,
+      background: background,
+      foreground: foreground,
     );
   }
 }
