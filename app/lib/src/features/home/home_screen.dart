@@ -63,7 +63,7 @@ class _HomeContent extends StatelessWidget {
     final recentExpenses = [...confirmedExpenses]
       ..sort((a, b) => b.spentAt.compareTo(a.spentAt));
     final currencyFormat = NumberFormat.decimalPattern('ko_KR');
-    // 예산 관리 기능은 아직 없으므로, 시안의 홈 카드 구조를 검증하기 위한 임시 월 예산값이다.
+    // 예산 관리는 아직 없으므로, 현재는 사용자가 정할 월 지출 한도 개념으로만 표시한다.
     const monthlyBudget = 1800000;
 
     return ListView(
@@ -211,7 +211,7 @@ class _HomeHeroCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    '예산 ${currencyFormat.format(monthlyBudget)}원',
+                    '월 지출 한도 ${currencyFormat.format(monthlyBudget)}원',
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.84),
                       fontSize: 12,

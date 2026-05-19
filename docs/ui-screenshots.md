@@ -22,7 +22,7 @@
 
 확인 포인트:
 
-- `이번 달 총 지출`, 예산, 진행률, 전월 대비 상태, 검토 알림 수를 한 카드에 배치
+- `이번 달 총 지출`, 월 지출 한도, 진행률, 전월 대비 상태, 검토 알림 수를 한 카드에 배치
 - 히어로 카드 오른쪽에 브랜드 마스코트 노출
 - 최근 거래를 흰 rounded card 안에 compact list로 표시
 - 가맹점 로고는 아직 정식 asset이 아닌 merchant-specific fallback
@@ -38,6 +38,17 @@
 - `스타벅스`, `배달의민족`이 단순 초성 placeholder보다 브랜드 식별성이 높은 아이콘으로 표시됨
 - 정식 로고 asset 없이도 최근 거래 리스트의 시각 밀도가 시안에 가까워짐
 - 이후 실제 로고 asset이 준비되면 merchant mapping만 교체 가능
+
+#### Home Spending Limit Copy
+
+수입/입금 기능이 없는 MVP 범위에 맞춰 `예산` 문구를 `월 지출 한도`로 바꾼 캡처입니다.
+
+![BillLearn home spending limit](screenshots/billlearn-home-spending-limit.png)
+
+확인 포인트:
+
+- 잔액 기반 예산처럼 보이지 않고 소비 한도 의미로 읽힘
+- 진행률 UI는 유지하면서 MVP 기능 범위와 문구가 맞아짐
 
 확인 포인트:
 
