@@ -10,6 +10,8 @@ abstract interface class ExpenseRepository {
 
   Future<RawNotification?> getRawNotificationBySourceHash(String sourceHash);
 
+  Future<RawNotification?> getRawNotificationById(String id);
+
   Future<List<ExpenseTransaction>> getExpenses();
 
   Future<ExpenseTransaction?> getExpenseById(String id);

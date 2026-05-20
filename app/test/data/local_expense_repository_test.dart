@@ -68,6 +68,7 @@ void main() {
     final rawBySourceHash = await repository.getRawNotificationBySourceHash(
       raw.sourceHash,
     );
+    final rawById = await repository.getRawNotificationById(raw.id);
     final storedExpenses = await repository.watchExpenses().first;
     final expenseSnapshot = await repository.getExpenses();
     final storedCandidates = await repository.getCandidatesForRawNotification(
@@ -85,6 +86,8 @@ void main() {
     expect(storedRaw.single.body, raw.body);
     expect(storedRaw.single.sourceHash, raw.sourceHash);
     expect(rawBySourceHash?.id, raw.id);
+    expect(rawById?.body, raw.body);
+    expect(await repository.getRawNotificationById('missing-raw'), isNull);
     expect(storedCandidates, hasLength(1));
     expect(storedCandidates.single.id, candidate.id);
     expect(storedCandidates.single.amount, candidate.amount);

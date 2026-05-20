@@ -108,9 +108,17 @@
 
 ![BillLearn transaction detail evidence bottom](screenshots/billlearn-detail-evidence-bottom.png)
 
+#### Transaction Detail User Evidence
+
+판별 근거를 사용자용 설명, 수집된 원본 알림, 개발자용 reason code로 분리한 캡처입니다.
+
+![BillLearn transaction detail user evidence](screenshots/billlearn-detail-user-evidence.png)
+
 확인 포인트:
 
 - 후보 ID와 가맹점/금액/결제 수단
+- 사용자가 이해할 수 있는 `지출에서 제외하는 편이 안전해요` 설명
+- 원본 푸시/SMS 알림 body
 - `지출 제외`, `중복 아님`, `이체/충전 의심`, `검토 필요` 판별 chip
 - 신뢰도와 `debug_sample`, `stored_value_top_up` reason code
 

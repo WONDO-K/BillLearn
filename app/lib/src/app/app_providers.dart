@@ -30,6 +30,11 @@ final rawNotificationsProvider = StreamProvider<List<RawNotification>>((ref) {
   return ref.watch(expenseRepositoryProvider).watchRawNotifications();
 });
 
+final rawNotificationByIdProvider =
+    FutureProvider.family<RawNotification?, String>((ref, id) {
+      return ref.watch(expenseRepositoryProvider).getRawNotificationById(id);
+    });
+
 final expenseByIdProvider = FutureProvider.family<ExpenseTransaction?, String>((
   ref,
   id,

@@ -41,6 +41,16 @@ class InMemoryExpenseRepository implements ExpenseRepository {
   }
 
   @override
+  Future<RawNotification?> getRawNotificationById(String id) async {
+    for (final rawNotification in _rawNotifications) {
+      if (rawNotification.id == id) {
+        return rawNotification;
+      }
+    }
+    return null;
+  }
+
+  @override
   Future<List<ExpenseTransaction>> getExpenses() async {
     return List.unmodifiable(_expenses);
   }

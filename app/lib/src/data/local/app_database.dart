@@ -104,6 +104,12 @@ class AppDatabase extends _$AppDatabase {
     )..where((row) => row.sourceHash.equals(sourceHash))).getSingleOrNull();
   }
 
+  Future<RawNotificationRow?> getRawNotificationRowById(String id) {
+    return (select(
+      rawNotifications,
+    )..where((row) => row.id.equals(id))).getSingleOrNull();
+  }
+
   Stream<List<ExpenseTransactionRow>> watchExpenseTransactionRows() {
     return select(expenseTransactions).watch();
   }

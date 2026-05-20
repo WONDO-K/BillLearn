@@ -43,8 +43,8 @@ void main() {
     expect(find.text('거래 정보'), findsOneWidget);
     expect(find.text('이 거래가 실제 지출인가요?'), findsOneWidget);
     expect(find.text('확정됨'), findsWidgets);
-    await tester.scrollUntilVisible(find.text('후보: candidate-1'), 300);
-    expect(find.text('후보: candidate-1'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('판별 근거'), 300);
+    expect(find.text('판별 근거'), findsOneWidget);
 
     await repository.dispose();
   });
@@ -53,6 +53,19 @@ void main() {
     tester,
   ) async {
     final repository = InMemoryExpenseRepository();
+    await repository.saveRawNotification(
+      RawNotification(
+        id: 'raw-1',
+        sourceType: RawNotificationSourceType.push,
+        sourceApp: 'com.baemin',
+        sender: null,
+        title: '배달의민족',
+        body: '[승인] 배달의민족 23,400원 신한카드',
+        receivedAt: DateTime(2026, 5, 14, 12, 45),
+        sourceHash: 'raw-hash-1',
+        createdAt: DateTime(2026, 5, 14, 12, 46),
+      ),
+    );
     await repository.saveTransactionCandidate(
       TransactionCandidate(
         id: 'candidate-1',
@@ -110,7 +123,11 @@ void main() {
 
     await tester.scrollUntilVisible(find.text('판별 근거'), 300);
     expect(find.text('판별 근거'), findsOneWidget);
-    expect(find.text('후보: candidate-1'), findsOneWidget);
+    expect(find.text('사용자용 설명과 개발자용 원본 정보를 나눠 보여줘요.'), findsOneWidget);
+    expect(find.text('실제 지출로 저장했어요'), findsOneWidget);
+    expect(find.text('수집된 알림 정보'), findsOneWidget);
+    expect(find.text('후보 ID'), findsOneWidget);
+    expect(find.text('candidate-1'), findsOneWidget);
     expect(find.text('가맹점'), findsWidgets);
     expect(find.text('배달의민족'), findsWidgets);
     expect(find.text('결제 수단'), findsOneWidget);
@@ -122,7 +139,10 @@ void main() {
     expect(find.text('이체/충전 아님'), findsOneWidget);
     expect(find.text('검토 불필요'), findsOneWidget);
     expect(find.text('신뢰도 92%'), findsOneWidget);
+    expect(find.text('개발자용 reason code'), findsOneWidget);
     expect(find.text('stable_payment_signal'), findsOneWidget);
+    expect(find.text('푸시 알림 · com.baemin'), findsOneWidget);
+    expect(find.text('[승인] 배달의민족 23,400원 신한카드'), findsOneWidget);
 
     await repository.dispose();
   });

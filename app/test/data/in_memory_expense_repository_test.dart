@@ -37,6 +37,8 @@ void main() {
 
     expect(await repository.watchRawNotifications().first, [raw]);
     expect(await repository.watchExpenses().first, [expense]);
+    expect(await repository.getRawNotificationById(raw.id), raw);
+    expect(await repository.getRawNotificationById('missing-raw'), isNull);
 
     await repository.dispose();
   });
