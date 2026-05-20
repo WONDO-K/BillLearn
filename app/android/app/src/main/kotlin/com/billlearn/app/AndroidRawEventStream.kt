@@ -1,5 +1,6 @@
 package com.billlearn.app
 
+import android.content.Context
 import io.flutter.plugin.common.EventChannel
 
 object AndroidRawEventStream : EventChannel.StreamHandler {
@@ -13,7 +14,8 @@ object AndroidRawEventStream : EventChannel.StreamHandler {
         sink = null
     }
 
-    fun emit(payload: Map<String, Any?>) {
+    fun emit(context: Context, payload: Map<String, Any?>) {
+        AndroidRawEventQueue.enqueue(context, payload)
         sink?.success(payload)
     }
 }

@@ -34,6 +34,22 @@ class AndroidEventBridge {
         false;
   }
 
+  Future<List<RawNotification>> drainPendingRawEvents() async {
+    final events =
+        await methodChannel.invokeListMethod<Object?>(
+          'drainPendingRawEvents',
+        ) ??
+        const <Object?>[];
+
+    return events
+        .map(
+          (event) => rawNotificationFromPayload(
+            Map<String, Object?>.from(event as Map),
+          ),
+        )
+        .toList(growable: false);
+  }
+
   static RawNotification rawNotificationFromPayload(
     Map<String, Object?> payload,
   ) {

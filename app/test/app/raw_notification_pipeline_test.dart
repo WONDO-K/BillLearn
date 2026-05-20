@@ -12,11 +12,13 @@ void main() {
     'processes Android raw notification stream into stored expense',
     () async {
       final rawEvents = StreamController<RawNotification>();
+      final pendingEvents = _FakePendingRawEvents();
       final repository = InMemoryExpenseRepository();
       final container = ProviderContainer(
         overrides: [
           expenseRepositoryProvider.overrideWithValue(repository),
           rawNotificationStreamProvider.overrideWithValue(rawEvents.stream),
+          pendingRawNotificationsProvider.overrideWithValue(pendingEvents.call),
         ],
       );
       addTearDown(container.dispose);
@@ -58,6 +60,63 @@ void main() {
       expect(expenses.single.confirmationStatus, ConfirmationStatus.confirmed);
     },
   );
+
+  test('processes pending Android raw notifications on startup', () async {
+    final rawEvents = StreamController<RawNotification>();
+    final pendingEvents = _FakePendingRawEvents([
+      RawNotification(
+        id: 'pending-raw-1',
+        sourceType: RawNotificationSourceType.push,
+        sourceApp: 'com.card.app',
+        sender: null,
+        title: '카드 승인',
+        body: '[신한카드 승인] 12,300원 스타벅스 05/14 12:30',
+        receivedAt: DateTime(2026, 5, 14, 12, 31),
+        sourceHash: 'pending-hash-1',
+        createdAt: DateTime(2026, 5, 14, 12, 31),
+      ),
+    ]);
+    final repository = InMemoryExpenseRepository();
+    final container = ProviderContainer(
+      overrides: [
+        expenseRepositoryProvider.overrideWithValue(repository),
+        rawNotificationStreamProvider.overrideWithValue(rawEvents.stream),
+        pendingRawNotificationsProvider.overrideWithValue(pendingEvents.call),
+      ],
+    );
+    addTearDown(container.dispose);
+    addTearDown(rawEvents.close);
+    addTearDown(repository.dispose);
+
+    final pipeline = container.listen(
+      rawNotificationPipelineProvider,
+      (_, __) {},
+    );
+    addTearDown(pipeline.close);
+
+    final rawNotification = await _waitForRawNotification(
+      repository,
+      'pending-hash-1',
+    );
+    final expenses = await _waitForExpenses(repository);
+
+    expect(pendingEvents.callCount, 1);
+    expect(rawNotification?.id, 'pending-raw-1');
+    expect(expenses.single.merchantName, '스타벅스');
+    expect(expenses.single.amount, 12300);
+  });
+}
+
+class _FakePendingRawEvents {
+  _FakePendingRawEvents([this.events = const []]);
+
+  final List<RawNotification> events;
+  int callCount = 0;
+
+  Future<List<RawNotification>> call() async {
+    callCount += 1;
+    return events;
+  }
 }
 
 Future<RawNotification?> _waitForRawNotification(

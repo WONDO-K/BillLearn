@@ -74,6 +74,11 @@ final rawNotificationStreamProvider = Provider<Stream<RawNotification>>((ref) {
   return ref.watch(androidEventBridgeProvider).watchRawNotifications();
 });
 
+final pendingRawNotificationsProvider =
+    Provider<Future<List<RawNotification>> Function()>((ref) {
+      return ref.watch(androidEventBridgeProvider).drainPendingRawEvents;
+    });
+
 final notificationAccessEnabledProvider = FutureProvider<bool>((ref) {
   return ref.watch(androidEventBridgeProvider).isNotificationAccessEnabled();
 });
@@ -95,6 +100,19 @@ final seedDebugSampleDataProvider = Provider<SeedDebugSampleData>((ref) {
 final rawNotificationPipelineProvider =
     Provider<StreamSubscription<RawNotification>>((ref) {
       final processor = ref.watch(processRawNotificationProvider);
+      final drainPendingRawNotifications = ref.watch(
+        pendingRawNotificationsProvider,
+      );
+
+      // 앱이 늦게 켜진 경우 native pending queue에 남은 원천 이벤트를 먼저 처리합니다.
+      unawaited(
+        drainPendingRawNotifications().then((pendingEvents) async {
+          for (final raw in pendingEvents) {
+            await processor.call(raw);
+          }
+        }),
+      );
+
       final subscription = ref
           .watch(rawNotificationStreamProvider)
           .listen(processor.call);

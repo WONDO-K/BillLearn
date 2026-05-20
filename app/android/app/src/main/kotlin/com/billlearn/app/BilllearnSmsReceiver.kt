@@ -19,6 +19,7 @@ class BilllearnSmsReceiver : BroadcastReceiver() {
             val sender = message.originatingAddress
 
             AndroidRawEventStream.emit(
+                context,
                 mapOf(
                     "id" to "sms-$timestamp-$sender",
                     "sourceType" to "sms",

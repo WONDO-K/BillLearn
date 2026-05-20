@@ -43,4 +43,39 @@ void main() {
     expect(await bridge.requestSmsPermission(), isTrue);
     expect(calls, ['isSmsPermissionGranted', 'requestSmsPermission']);
   });
+
+  test('drains pending raw events through method channel', () async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(AndroidEventBridge.methodChannel, (
+          call,
+        ) async {
+          expect(call.method, 'drainPendingRawEvents');
+          return [
+            {
+              'id': 'pending-raw-1',
+              'sourceType': 'push',
+              'sourceApp': 'com.card.app',
+              'sender': null,
+              'title': '카드 승인',
+              'body': '[승인] 12,300원 스타벅스',
+              'receivedAtMillis': DateTime(
+                2026,
+                5,
+                14,
+                12,
+                30,
+              ).millisecondsSinceEpoch,
+              'sourceHash': 'pending-hash-1',
+            },
+          ];
+        });
+
+    final pendingEvents = await AndroidEventBridge().drainPendingRawEvents();
+
+    expect(pendingEvents, hasLength(1));
+    expect(pendingEvents.single.id, 'pending-raw-1');
+    expect(pendingEvents.single.sourceType, RawNotificationSourceType.push);
+    expect(pendingEvents.single.sourceApp, 'com.card.app');
+    expect(pendingEvents.single.body, contains('스타벅스'));
+  });
 }

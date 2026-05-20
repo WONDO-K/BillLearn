@@ -12,6 +12,7 @@ class BilllearnNotificationListenerService : NotificationListenerService() {
         val body = listOfNotNull(title, text).joinToString(" ")
 
         AndroidRawEventStream.emit(
+            this,
             mapOf(
                 "id" to "push-${sbn.postTime}-${sbn.packageName}",
                 "sourceType" to "push",

@@ -2,9 +2,9 @@
 
 이 문서는 실제 Android 기기에서 BillLearn MVP의 핵심 경로를 검증하기 위한 절차입니다.
 
-작성 기준: 2026-05-20 현재 Flutter/Android MVP 구현 상태
+작성 기준: 2026-05-21 현재 Flutter/Android MVP 구현 상태
 
-주의: 현재 Android native 수집기는 `EventChannel`이 열려 있을 때 Flutter로 raw event를 전달한다. 앱 프로세스가 완전히 종료된 상태에서 native event를 임시 저장했다가 나중에 재전송하는 durable queue는 아직 없다. 따라서 1차 검증은 앱 실행 중 또는 최근 실행 상태에서 진행하고, 백그라운드/강제 종료 상태 수집은 별도 미검증 항목으로 기록한다.
+주의: 현재 Android native 수집기는 raw event를 SharedPreferences pending queue에 먼저 저장하고, Flutter 시작 시 `drainPendingRawEvents`로 회수한다. 다만 실제 제조사 기기에서 NotificationListenerService/SMS receiver가 백그라운드 또는 강제 종료 상태에서도 실행되는지는 아직 검증하지 않았다.
 
 ## 검증 목표
 
@@ -245,8 +245,8 @@ Set-Location E:\workspace\BillLearn\app
 
 현재 기대:
 
-- native event durable queue가 없으므로 누락될 가능성이 높다.
-- 실제 제품화 전에는 native 수집 이벤트를 로컬 저장소에 먼저 기록하고 Flutter 시작 시 동기화하는 구조가 필요하다.
+- native pending queue가 있으므로 receiver/service가 실행되기만 하면 다음 앱 시작 시 회수되는 것이 기대 동작이다.
+- 단, `force-stop` 이후 Android가 receiver/service 자체를 막는 제조사/OS 정책이 있으면 여전히 누락될 수 있다.
 
 ## 11. 실패 시 분기
 
@@ -256,8 +256,8 @@ Set-Location E:\workspace\BillLearn\app
 - 제조사 배터리 최적화가 알림 listener를 제한하는지 확인한다.
 - 결제 앱 알림이 실제 Android notification으로 표시되는지 확인한다.
 - 설정 화면 `수집 진단`의 수집 건수가 증가하는지 확인한다.
-- 앱이 강제 종료된 상태라면 현재 구현 한계로 이벤트가 누락될 수 있다.
-- native durable queue가 필요한 케이스인지 기록한다.
+- 앱이 강제 종료된 상태라면 receiver/service가 실행됐는지와 pending queue 회수 여부를 분리해서 기록한다.
+- receiver/service는 실행됐지만 앱 재시작 후 수집 진단에 안 보이면 pending queue drain 문제로 기록한다.
 
 SMS가 수집되지 않는 경우:
 
@@ -298,7 +298,8 @@ MVP 개발 검증에서는 SMS receiver를 사용하지만, Google Play 배포 �
 추가 미검증 항목:
 
 - 제조사별 배터리 최적화가 NotificationListenerService를 제한하는지 여부
-- 앱 강제 종료 후 알림/SMS 이벤트 보존 여부
+- 앱 강제 종료 후 NotificationListenerService/SMS receiver 실행 여부
+- native pending queue가 실제 기기에서 앱 재시작 후 정상 drain되는지 여부
 - 실제 카드사/은행/간편결제 앱별 알림 포맷 정확도
 - Google Play SMS 권한 심사 가능성
 - 장기간 사용 시 SQLite 데이터 증가와 중복 raw event 처리 안정성
