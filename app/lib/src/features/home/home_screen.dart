@@ -189,7 +189,7 @@ class _HomeHeroCard extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(18, 18, 122, 18),
+              padding: const EdgeInsets.fromLTRB(18, 18, 116, 18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -301,7 +301,7 @@ class _HeroFooterLine extends StatelessWidget {
           child: Text(
             confirmedCount == 0
                 ? '전월 데이터 수집 전'
-                : '확정 거래 $confirmedCount건 · 전월 대비 집계 준비 중',
+                : '확정 $confirmedCount건 · 전월 비교 준비중',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
@@ -508,7 +508,7 @@ class _ReviewTransactionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return _SoftTile(
       title: expense.merchantName,
-      subtitle: '${currencyFormat.format(expense.amount)}원 · 실제 지출인지 확인해주세요',
+      subtitle: '${currencyFormat.format(expense.amount)}원 · 실제 지출인지 확인 필요',
       leading: MerchantMark(
         merchantName: expense.merchantName,
         categoryId: expense.categoryId,
@@ -757,6 +757,8 @@ class _SoftTile extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         subtitle,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Colors.black54,
                           fontSize: 12,

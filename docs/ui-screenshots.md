@@ -26,13 +26,19 @@ Figma 무료 에셋은 앱에 직접 번들하지 않고, 보라 그라디언트
 
 ![BillLearn home UI polish](screenshots/billlearn-home-ui-polish.png)
 
+#### Home UI Polish Font Pass
+
+큰 글자 환경에서 히어로 카드 하단 문구와 검토 카드 보조 문구가 잘리지 않도록 문구 길이와 여백을 보정한 캡처입니다.
+
+![BillLearn home UI polish font pass](screenshots/billlearn-home-ui-polish-font.png)
+
 확인 포인트:
 
 - `이번 달 총 지출`, 월 지출 한도, 진행률, 전월 대비 상태, 검토 알림 수를 한 카드에 배치
 - 히어로 카드 오른쪽에 브랜드 마스코트 노출
 - 최근 거래를 흰 rounded card 안에 compact list로 표시
 - 가맹점 로고는 아직 정식 asset이 아닌 merchant-specific fallback
-- 에뮬레이터 글자 크기 기준으로 일부 문구가 말줄임 처리되므로 다음 polish에서 폰트 스케일 대응 필요
+- 에뮬레이터 글자 크기 기준으로 히어로 하단 문구와 검토 카드 보조 문구가 잘리지 않음
 
 #### Home Merchant Icons
 
