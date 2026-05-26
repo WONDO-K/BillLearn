@@ -21,9 +21,9 @@ void main() {
     expect(find.text('홈'), findsWidgets);
     expect(find.text('이번 달 총 지출'), findsOneWidget);
     expect(find.text('월 지출 한도 1,800,000원'), findsOneWidget);
-    expect(find.text('빌런의 인사이트'), findsOneWidget);
+    expect(find.text('검토가 필요한 알림'), findsOneWidget);
     expect(find.text('최근 거래'), findsOneWidget);
-    expect(find.bySemanticsLabel('BillLearn mascot'), findsNWidgets(2));
+    expect(find.bySemanticsLabel('BillLearn mascot'), findsOneWidget);
     expect(find.bySemanticsLabel('BillLearn hero mascot'), findsOneWidget);
 
     await repository.dispose();
