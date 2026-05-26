@@ -134,6 +134,12 @@ Figma 무료 에셋은 앱에 직접 번들하지 않고, 보라 그라디언트
 
 ![BillLearn transaction detail user evidence](screenshots/billlearn-detail-user-evidence.png)
 
+#### Transaction Detail UI Polish
+
+홈/내역 화면과 같은 라운드, 그림자, 연한 보라 그라디언트 표현을 상세 화면에도 맞춘 캡처입니다.
+
+![BillLearn transaction detail UI polish](screenshots/billlearn-detail-ui-polish.png)
+
 확인 포인트:
 
 - 후보 ID와 가맹점/금액/결제 수단
@@ -141,6 +147,7 @@ Figma 무료 에셋은 앱에 직접 번들하지 않고, 보라 그라디언트
 - 원본 푸시/SMS 알림 body
 - `지출 제외`, `중복 아님`, `이체/충전 의심`, `검토 필요` 판별 chip
 - 신뢰도와 `debug_sample`, `stored_value_top_up` reason code
+- 긴 가맹점명은 히어로 카드에서 한 줄 말줄임 처리
 
 ### Settings
 
