@@ -128,9 +128,16 @@
 
 ![BillLearn settings polished](screenshots/billlearn-settings-polished.png)
 
+#### Settings Pending Queue Diagnostics
+
+Android native pending queue 잔여 건수를 설정 화면 개발자 도구에서 확인한 캡처입니다.
+
+![BillLearn settings pending queue](screenshots/billlearn-settings-pending-queue.png)
+
 확인 포인트:
 
 - 알림 접근 권한 / SMS 권한 상태
+- debug mode 전용 `대기 중 원천 이벤트 0건`
 - debug mode 전용 `샘플 거래 생성`
 - 수집 진단 카드 진입부
 
