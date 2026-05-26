@@ -93,12 +93,19 @@ Figma 무료 에셋은 앱에 직접 번들하지 않고, 보라 그라디언트
 
 ![BillLearn history reference layout](screenshots/billlearn-history-reference-layout.png)
 
+#### History UI Polish
+
+홈 화면과 같은 시각 언어에 맞춰 내역 요약 카드와 날짜별 거래 묶음 카드의 라운드/그림자/문구 밀도를 보정한 캡처입니다.
+
+![BillLearn history UI polish](screenshots/billlearn-history-ui-polish.png)
+
 확인 포인트:
 
 - `잔여 기간`, `전체 카테고리`, 검색 아이콘으로 상단 탐색 구조를 배치
 - 전체 지출 합계와 거래 건수를 compact summary card로 표시
 - 날짜 헤더 아래 같은 날짜 거래를 하나의 흰 rounded card로 묶음
 - 홈과 같은 merchant fallback icon/category chip을 내역에서도 사용
+- `확인 필요` 거래의 보조 문구가 큰 글자 환경에서도 짧게 유지됨
 - 확정 지출 `2건`
 - 검토 거래 `1건`
 - `확인 필요` 상태 chip과 안내 문구

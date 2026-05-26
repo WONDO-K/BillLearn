@@ -59,7 +59,7 @@ class _HistoryContent extends StatelessWidget {
     final groupedExpenses = _groupByDate(sortedExpenses);
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 120),
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 120),
       children: [
         const _HistoryFilterRow(),
         const SizedBox(height: 14),
@@ -200,13 +200,13 @@ class _HistorySummaryCard extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [Colors.white, BillLearnColors.lightPurple],
         ),
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(color: Colors.white, width: 1.4),
         boxShadow: [
           BoxShadow(
-            color: BillLearnColors.mainPurple.withValues(alpha: 0.12),
-            blurRadius: 22,
-            offset: const Offset(0, 12),
+            color: BillLearnColors.mainPurple.withValues(alpha: 0.14),
+            blurRadius: 24,
+            offset: const Offset(0, 14),
           ),
         ],
       ),
@@ -327,9 +327,11 @@ class _HistoryDateCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(22),
+      elevation: 1,
+      shadowColor: Colors.black.withValues(alpha: 0.10),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 16, 14, 4),
+        padding: const EdgeInsets.fromLTRB(14, 16, 14, 2),
         child: Column(
           children: [
             for (final expense in expenses)
@@ -409,7 +411,7 @@ class _HistoryTransactionRow extends StatelessWidget {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      needsReview ? '$subtitle · 실제 지출인지 확인해주세요' : subtitle,
+                      needsReview ? '$subtitle · 실제 지출 확인 필요' : subtitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
