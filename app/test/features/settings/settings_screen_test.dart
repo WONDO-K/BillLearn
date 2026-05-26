@@ -150,6 +150,9 @@ void main() {
   testWidgets('creates debug sample transactions from settings', (
     tester,
   ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1000));
+    addTearDown(() async => tester.binding.setSurfaceSize(null));
+
     final bridge = _FakeAndroidEventBridge(
       notificationAccessEnabled: true,
       smsPermissionGranted: true,
@@ -168,8 +171,10 @@ void main() {
     await tester.pump();
 
     expect(find.text('개발자 도구'), findsOneWidget);
+    expect(find.text('대기 중 원천 이벤트 2건'), findsOneWidget);
     expect(find.text('샘플 거래 생성'), findsOneWidget);
 
+    await tester.scrollUntilVisible(find.text('샘플 거래 생성'), 120);
     await tester.tap(find.text('샘플 거래 생성'));
     await tester.pump();
 
@@ -181,6 +186,7 @@ void main() {
     );
     expect(find.text('샘플 거래를 생성했습니다'), findsOneWidget);
 
+    await tester.scrollUntilVisible(find.text('샘플 거래 생성'), 120);
     await tester.tap(find.text('샘플 거래 생성'));
     await tester.pump();
 
@@ -199,6 +205,7 @@ class _FakeAndroidEventBridge extends AndroidEventBridge {
 
   final bool notificationAccessEnabled;
   final bool smsPermissionGranted;
+  final int pendingRawEventCount = 2;
   int openNotificationSettingsCallCount = 0;
   int requestSmsPermissionCallCount = 0;
 
@@ -221,5 +228,10 @@ class _FakeAndroidEventBridge extends AndroidEventBridge {
   Future<bool> requestSmsPermission() async {
     requestSmsPermissionCallCount += 1;
     return true;
+  }
+
+  @override
+  Future<int> getPendingRawEventCount() async {
+    return pendingRawEventCount;
   }
 }

@@ -34,6 +34,14 @@ object AndroidRawEventQueue {
         }
     }
 
+    fun count(context: Context): Int {
+        val preferences = context.applicationContext.getSharedPreferences(
+            PREFS_NAME,
+            Context.MODE_PRIVATE
+        )
+        return JSONArray(preferences.getString(KEY_PENDING_EVENTS, "[]")).length()
+    }
+
     private fun Map<String, Any?>.withoutNullValues(): Map<String, Any> {
         return entries
             .filter { it.value != null }

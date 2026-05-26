@@ -78,4 +78,16 @@ void main() {
     expect(pendingEvents.single.sourceApp, 'com.card.app');
     expect(pendingEvents.single.body, contains('스타벅스'));
   });
+
+  test('reads pending raw event count through method channel', () async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(AndroidEventBridge.methodChannel, (
+          call,
+        ) async {
+          expect(call.method, 'getPendingRawEventCount');
+          return 2;
+        });
+
+    expect(await AndroidEventBridge().getPendingRawEventCount(), 2);
+  });
 }

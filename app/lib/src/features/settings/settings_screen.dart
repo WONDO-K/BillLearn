@@ -174,6 +174,8 @@ class _DebugToolsCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final pendingRawEventCount = ref.watch(pendingRawEventCountProvider);
+
     return _SoftCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -188,6 +190,8 @@ class _DebugToolsCard extends ConsumerWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
+          const SizedBox(height: 14),
+          _PendingRawEventDiagnostic(count: pendingRawEventCount),
           const SizedBox(height: 14),
           OutlinedButton(
             onPressed: () async {
@@ -204,6 +208,35 @@ class _DebugToolsCard extends ConsumerWidget {
             child: const Text('샘플 거래 생성'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _PendingRawEventDiagnostic extends StatelessWidget {
+  const _PendingRawEventDiagnostic({required this.count});
+
+  final AsyncValue<int> count;
+
+  @override
+  Widget build(BuildContext context) {
+    return count.when(
+      data: (value) => _MetricPill(label: '대기 중 원천 이벤트', value: '$value건'),
+      loading: () => const Text(
+        '대기 중 원천 이벤트 확인 중',
+        style: TextStyle(
+          color: Colors.black54,
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      error: (error, stackTrace) => const Text(
+        '대기 중 원천 이벤트 확인 실패',
+        style: TextStyle(
+          color: Colors.black54,
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }

@@ -83,6 +83,10 @@ final notificationAccessEnabledProvider = FutureProvider<bool>((ref) {
   return ref.watch(androidEventBridgeProvider).isNotificationAccessEnabled();
 });
 
+final pendingRawEventCountProvider = FutureProvider<int>((ref) {
+  return ref.watch(androidEventBridgeProvider).getPendingRawEventCount();
+});
+
 final smsPermissionGrantedProvider = FutureProvider<bool>((ref) {
   return ref.watch(androidEventBridgeProvider).isSmsPermissionGranted();
 });

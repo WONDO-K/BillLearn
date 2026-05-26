@@ -50,6 +50,11 @@ class AndroidEventBridge {
         .toList(growable: false);
   }
 
+  Future<int> getPendingRawEventCount() async {
+    return await methodChannel.invokeMethod<int>('getPendingRawEventCount') ??
+        0;
+  }
+
   static RawNotification rawNotificationFromPayload(
     Map<String, Object?> payload,
   ) {

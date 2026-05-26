@@ -30,6 +30,7 @@ class MainActivity : FlutterActivity() {
                 "isSmsPermissionGranted" -> result.success(isSmsPermissionGranted())
                 "requestSmsPermission" -> requestSmsPermission(result)
                 "drainPendingRawEvents" -> result.success(AndroidRawEventQueue.drain(this))
+                "getPendingRawEventCount" -> result.success(AndroidRawEventQueue.count(this))
                 else -> result.notImplemented()
             }
         }

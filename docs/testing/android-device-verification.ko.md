@@ -127,6 +127,7 @@ Set-Location E:\workspace\BillLearn\app
 
 - `수집 진단` 카드가 표시된다.
 - 아직 테스트 알림을 받기 전이면 `최근 수집 0건` 또는 `아직 수집된 원천 알림이 없습니다.`가 표시된다.
+- debug 빌드에서는 설정의 `개발자 도구` 카드에 `대기 중 원천 이벤트 N건`이 표시된다.
 
 테스트 알림 수신 후 성공 기준:
 
@@ -141,6 +142,7 @@ Set-Location E:\workspace\BillLearn\app
 
 - raw 수집 실패인지, 파싱 실패인지, 분류 실패인지 빠르게 구분한다.
 - 실제 Android 기기에서 제조사/권한/백그라운드 제한 문제를 진단한다.
+- pending queue에 이벤트가 남아 있는지와 Flutter pipeline 처리 후 SQLite에 저장됐는지를 분리해서 본다.
 
 ## 8. 결제 알림 수집 확인
 
@@ -232,6 +234,7 @@ Set-Location E:\workspace\BillLearn\app
 기록할 것:
 
 - 수집 성공 여부
+- 앱 재시작 직후 `대기 중 원천 이벤트 N건` 변화
 - 제조사 배터리 제한 알림 여부
 - 앱이 OS에 의해 정리됐는지 여부
 
