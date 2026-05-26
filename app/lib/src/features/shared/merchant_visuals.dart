@@ -16,10 +16,11 @@ class MerchantMark extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final visual = MerchantVisual.from(merchantName, categoryId);
+    final size = large ? 42.0 : 34.0;
 
     return Container(
-      width: large ? 42 : 34,
-      height: large ? 42 : 34,
+      width: size,
+      height: size,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: visual.background,
@@ -28,6 +29,35 @@ class MerchantMark extends StatelessWidget {
             ? null
             : BorderRadius.circular(large ? 14 : 12),
       ),
+      child: ClipRRect(
+        borderRadius: visual.circular
+            ? BorderRadius.circular(size / 2)
+            : BorderRadius.circular(large ? 14 : 12),
+        child: visual.assetPath == null
+            ? _MerchantFallbackLabel(visual: visual, large: large)
+            : Image.asset(
+                visual.assetPath!,
+                width: size,
+                height: size,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return _MerchantFallbackLabel(visual: visual, large: large);
+                },
+              ),
+      ),
+    );
+  }
+}
+
+class _MerchantFallbackLabel extends StatelessWidget {
+  const _MerchantFallbackLabel({required this.visual, required this.large});
+
+  final MerchantVisual visual;
+  final bool large;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
       child: Text(
         visual.label,
         style: TextStyle(
@@ -84,6 +114,7 @@ class MerchantVisual {
     this.largeFontSize = 17,
     this.smallFontSize = 14,
     this.letterSpacing = -0.2,
+    this.assetPath,
   });
 
   final String label;
@@ -93,59 +124,15 @@ class MerchantVisual {
   final double largeFontSize;
   final double smallFontSize;
   final double letterSpacing;
+  final String? assetPath;
 
   factory MerchantVisual.from(String merchantName, String? categoryId) {
     final normalized = merchantName.replaceAll(' ', '').toLowerCase();
 
-    // 정식 로고 asset이 없는 MVP 단계에서는 가맹점별 색/라벨 fallback으로 시안의 로고 밀도를 맞춘다.
-    if (normalized.contains('배달의민족') || normalized.contains('배민')) {
-      return const MerchantVisual(
-        label: '배민',
-        background: Color(0xFF48C7C2),
-        foreground: Colors.white,
-        circular: true,
-        largeFontSize: 12,
-        smallFontSize: 10,
-        letterSpacing: -1.0,
-      );
-    }
-    if (normalized.contains('스타벅스')) {
-      return const MerchantVisual(
-        label: '★',
-        background: Color(0xFF006241),
-        foreground: Colors.white,
-        circular: true,
-        largeFontSize: 18,
-        smallFontSize: 15,
-      );
-    }
-    if (normalized.contains('네이버') || normalized.contains('naver')) {
-      return const MerchantVisual(
-        label: 'N',
-        background: Color(0xFF03C75A),
-        foreground: Colors.white,
-        largeFontSize: 18,
-        smallFontSize: 15,
-      );
-    }
-    if (normalized.contains('쿠팡') || normalized.contains('coupang')) {
-      return const MerchantVisual(
-        label: 'c',
-        background: Color(0xFFD22F27),
-        foreground: Colors.white,
-        circular: true,
-        largeFontSize: 19,
-        smallFontSize: 15,
-      );
-    }
-    if (normalized.contains('동백전')) {
-      return const MerchantVisual(
-        label: '동',
-        background: BillLearnColors.lightPurple,
-        foreground: BillLearnColors.mainPurple,
-        largeFontSize: 16,
-        smallFontSize: 13,
-      );
+    // 정식 로고 asset이 들어오면 catalog entry의 assetPath만 채워 홈/내역/상세에 동시에 반영합니다.
+    final catalogEntry = _MerchantCatalogEntry.match(normalized);
+    if (catalogEntry != null) {
+      return catalogEntry.visual;
     }
 
     final initial = merchantName.characters.isEmpty
@@ -170,4 +157,77 @@ class MerchantVisual {
       foreground: foreground,
     );
   }
+}
+
+class _MerchantCatalogEntry {
+  const _MerchantCatalogEntry({required this.aliases, required this.visual});
+
+  final List<String> aliases;
+  final MerchantVisual visual;
+
+  static _MerchantCatalogEntry? match(String normalizedMerchantName) {
+    for (final entry in _entries) {
+      if (entry.aliases.any(normalizedMerchantName.contains)) {
+        return entry;
+      }
+    }
+    return null;
+  }
+
+  static const _entries = [
+    _MerchantCatalogEntry(
+      aliases: ['배달의민족', '배민'],
+      visual: MerchantVisual(
+        label: '배민',
+        background: Color(0xFF48C7C2),
+        foreground: Colors.white,
+        circular: true,
+        largeFontSize: 12,
+        smallFontSize: 10,
+        letterSpacing: -1.0,
+      ),
+    ),
+    _MerchantCatalogEntry(
+      aliases: ['스타벅스', 'starbucks'],
+      visual: MerchantVisual(
+        label: '★',
+        background: Color(0xFF006241),
+        foreground: Colors.white,
+        circular: true,
+        largeFontSize: 18,
+        smallFontSize: 15,
+      ),
+    ),
+    _MerchantCatalogEntry(
+      aliases: ['네이버', 'naver'],
+      visual: MerchantVisual(
+        label: 'N',
+        background: Color(0xFF03C75A),
+        foreground: Colors.white,
+        largeFontSize: 18,
+        smallFontSize: 15,
+      ),
+    ),
+    _MerchantCatalogEntry(
+      aliases: ['쿠팡', 'coupang'],
+      visual: MerchantVisual(
+        label: 'c',
+        background: Color(0xFFD22F27),
+        foreground: Colors.white,
+        circular: true,
+        largeFontSize: 19,
+        smallFontSize: 15,
+      ),
+    ),
+    _MerchantCatalogEntry(
+      aliases: ['동백전'],
+      visual: MerchantVisual(
+        label: '동',
+        background: BillLearnColors.lightPurple,
+        foreground: BillLearnColors.mainPurple,
+        largeFontSize: 16,
+        smallFontSize: 13,
+      ),
+    ),
+  ];
 }
