@@ -155,6 +155,12 @@ Figma 무료 에셋은 앱에 직접 번들하지 않고, 보라 그라디언트
 
 ![BillLearn settings polished](screenshots/billlearn-settings-polished.png)
 
+#### Settings UI Polish
+
+홈/내역/상세와 같은 연한 보라 히어로 카드, 둥근 권한 카드, 깊이감 있는 설정 카드 표현을 적용한 캡처입니다.
+
+![BillLearn settings UI polish](screenshots/billlearn-settings-ui-polish.png)
+
 #### Settings Pending Queue Diagnostics
 
 Android native pending queue 잔여 건수를 설정 화면 개발자 도구에서 확인한 캡처입니다.
@@ -167,6 +173,7 @@ Android native pending queue 잔여 건수를 설정 화면 개발자 도구에�
 - debug mode 전용 `대기 중 원천 이벤트 0건`
 - debug mode 전용 `샘플 거래 생성`
 - 수집 진단 카드 진입부
+- 설정 카드가 홈/내역/상세와 같은 라운드와 그림자 깊이를 유지
 
 ### Settings Diagnostics
 
