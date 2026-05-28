@@ -68,7 +68,7 @@ class _HomeContent extends StatelessWidget {
     const monthlyBudget = 1800000;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 120),
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 120),
       children: [
         _HomeHeroCard(
           total: total,
@@ -77,26 +77,12 @@ class _HomeContent extends StatelessWidget {
           needsReviewCount: needsReview.length,
           currencyFormat: currencyFormat,
         ),
-        const SizedBox(height: 18),
-        _SectionHeader(
-          title: '빌런의 인사이트',
-          subtitle: '실제 지출인지 애매한 알림을 먼저 확인해요',
-          actionLabel: needsReview.isEmpty ? null : '${needsReview.length}건',
+        const SizedBox(height: 16),
+        _ReviewInsightPanel(
+          needsReview: needsReview,
+          currencyFormat: currencyFormat,
         ),
-        const SizedBox(height: 8),
-        if (needsReview.isEmpty)
-          const _EmptyStateTile(
-            title: '아직 확인할 거래가 없어요',
-            subtitle: '이체, 충전, 취소처럼 애매한 알림이 생기면 여기에 모아둘게요.',
-          )
-        else
-          ...needsReview.map(
-            (expense) => _ReviewTransactionTile(
-              expense: expense,
-              currencyFormat: currencyFormat,
-            ),
-          ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 20),
         _SectionHeader(
           title: '최근 거래',
           actionLabel: recentExpenses.isEmpty ? null : '더보기 >',
@@ -150,34 +136,49 @@ class _HomeHeroCard extends StatelessWidget {
     final budgetPercent = (budgetProgress * 100).round();
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(22),
+      borderRadius: BorderRadius.circular(24),
       child: DecoratedBox(
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [BillLearnColors.mainPurple, Color(0xFF8C73FF)],
+            colors: [
+              Color(0xFF5B3FFF),
+              BillLearnColors.mainPurple,
+              Color(0xFF9C84FF),
+            ],
+            stops: [0.0, 0.54, 1.0],
           ),
           boxShadow: [
             BoxShadow(
-              color: BillLearnColors.mainPurple.withValues(alpha: 0.22),
-              blurRadius: 24,
-              offset: const Offset(0, 14),
+              color: BillLearnColors.mainPurple.withValues(alpha: 0.28),
+              blurRadius: 28,
+              offset: const Offset(0, 16),
             ),
           ],
         ),
         child: Stack(
           children: [
+            const Positioned(
+              right: -44,
+              top: -38,
+              child: _HeroGlowCircle(size: 158, opacity: 0.18),
+            ),
+            const Positioned(
+              left: -62,
+              bottom: -78,
+              child: _HeroGlowCircle(size: 180, opacity: 0.12),
+            ),
             Positioned(
-              right: -8,
-              top: 18,
-              bottom: 8,
+              right: -10,
+              top: 20,
+              bottom: 6,
               child: Opacity(
-                opacity: 0.92,
+                opacity: 0.94,
                 child: SizedBox(
-                  width: 134,
+                  width: 142,
                   child: Transform.scale(
-                    scale: 1.28,
+                    scale: 1.34,
                     child: SvgPicture.asset(
                       'assets/brand/brand_mascot.svg',
                       fit: BoxFit.contain,
@@ -188,7 +189,7 @@ class _HomeHeroCard extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(18, 18, 118, 18),
+              padding: const EdgeInsets.fromLTRB(18, 18, 116, 18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -205,7 +206,7 @@ class _HomeHeroCard extends StatelessWidget {
                     '${currencyFormat.format(total)}원',
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 28,
+                      fontSize: 29,
                       fontWeight: FontWeight.w900,
                       letterSpacing: -0.5,
                     ),
@@ -249,16 +250,10 @@ class _HomeHeroCard extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 14),
-                  Text(
-                    confirmedCount == 0 ? '전월 데이터 수집 전' : '전월 대비 집계 준비 중',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.78),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  _HeroFooterLine(
+                    confirmedCount: confirmedCount,
+                    needsReviewCount: needsReviewCount,
                   ),
-                  const SizedBox(height: 4),
-                  _HeroReviewLine(needsReviewCount: needsReviewCount),
                 ],
               ),
             ),
@@ -269,9 +264,32 @@ class _HomeHeroCard extends StatelessWidget {
   }
 }
 
-class _HeroReviewLine extends StatelessWidget {
-  const _HeroReviewLine({required this.needsReviewCount});
+class _HeroGlowCircle extends StatelessWidget {
+  const _HeroGlowCircle({required this.size, required this.opacity});
 
+  final double size;
+  final double opacity;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white.withValues(alpha: opacity),
+      ),
+    );
+  }
+}
+
+class _HeroFooterLine extends StatelessWidget {
+  const _HeroFooterLine({
+    required this.confirmedCount,
+    required this.needsReviewCount,
+  });
+
+  final int confirmedCount;
   final int needsReviewCount;
 
   @override
@@ -279,19 +297,37 @@ class _HeroReviewLine extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          needsReviewCount == 0 ? '검토할 알림 없음' : '검토할 알림 $needsReviewCount건',
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 12,
-            fontWeight: FontWeight.w900,
+        Flexible(
+          child: Text(
+            confirmedCount == 0
+                ? '전월 데이터 수집 전'
+                : '확정 $confirmedCount건 · 전월 비교 준비중',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.78),
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
-        const SizedBox(width: 3),
-        Icon(
-          Icons.keyboard_arrow_down_rounded,
-          color: Colors.white.withValues(alpha: 0.88),
-          size: 17,
+        const SizedBox(width: 8),
+        DecoratedBox(
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.18),
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: Text(
+              needsReviewCount == 0 ? '검토 없음' : '검토 $needsReviewCount건',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
         ),
       ],
     );
@@ -360,6 +396,105 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
+class _ReviewInsightPanel extends StatelessWidget {
+  const _ReviewInsightPanel({
+    required this.needsReview,
+    required this.currencyFormat,
+  });
+
+  final List<ExpenseTransaction> needsReview;
+  final NumberFormat currencyFormat;
+
+  @override
+  Widget build(BuildContext context) {
+    final visibleItems = needsReview.take(3).toList(growable: false);
+
+    // AI 고도화 전까지는 "인사이트"를 확정 판단이 필요한 알림 묶음으로 제한한다.
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.94),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: BillLearnColors.lightPurple),
+        boxShadow: [
+          BoxShadow(
+            color: BillLearnColors.mainPurple.withValues(alpha: 0.07),
+            blurRadius: 22,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+        child: Column(
+          children: [
+            _SectionHeader(
+              title: '검토가 필요한 알림',
+              subtitle: '이체, 충전, 취소처럼 애매한 알림을 먼저 확인해요',
+              actionLabel: needsReview.isEmpty
+                  ? null
+                  : '${needsReview.length}건',
+            ),
+            const SizedBox(height: 12),
+            if (visibleItems.isEmpty)
+              const _InsightStatusRow(
+                icon: Icons.check_circle_outline_rounded,
+                title: '중복 계산 의심 없음',
+                subtitle: '현재는 실제 지출로 확정된 거래만 홈에 반영 중입니다.',
+              )
+            else
+              for (final expense in visibleItems)
+                _ReviewTransactionTile(
+                  expense: expense,
+                  currencyFormat: currencyFormat,
+                ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _InsightStatusRow extends StatelessWidget {
+  const _InsightStatusRow({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return _SoftTile(
+      title: title,
+      subtitle: subtitle,
+      leading: _InsightIcon(icon: icon),
+    );
+  }
+}
+
+class _InsightIcon extends StatelessWidget {
+  const _InsightIcon({required this.icon});
+
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: BillLearnColors.lightPurple,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(9),
+        child: Icon(icon, color: BillLearnColors.mainPurple, size: 21),
+      ),
+    );
+  }
+}
+
 class _ReviewTransactionTile extends StatelessWidget {
   const _ReviewTransactionTile({
     required this.expense,
@@ -373,7 +508,7 @@ class _ReviewTransactionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return _SoftTile(
       title: expense.merchantName,
-      subtitle: '${currencyFormat.format(expense.amount)}원 · 실제 지출인지 확인해주세요',
+      subtitle: '${currencyFormat.format(expense.amount)}원 · 실제 지출인지 확인 필요',
       leading: MerchantMark(
         merchantName: expense.merchantName,
         categoryId: expense.categoryId,
@@ -424,11 +559,20 @@ class _RecentTransactionsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 16, 14, 4),
+        padding: const EdgeInsets.fromLTRB(14, 16, 14, 2),
         child: Column(
           children: [
             for (final expense in expenses)
@@ -613,6 +757,8 @@ class _SoftTile extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         subtitle,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Colors.black54,
                           fontSize: 12,

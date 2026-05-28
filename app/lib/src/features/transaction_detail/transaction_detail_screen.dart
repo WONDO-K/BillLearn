@@ -45,7 +45,7 @@ class _TransactionDetailContent extends StatelessWidget {
     final currencyFormat = NumberFormat.decimalPattern('ko_KR');
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 32),
       children: [
         _DetailHeroCard(expense: expense, currencyFormat: currencyFormat),
         const SizedBox(height: 16),
@@ -128,15 +128,20 @@ class _DetailHeroCard extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Colors.white, BillLearnColors.lightPurple],
+          colors: [
+            Colors.white,
+            Color(0xFFF8F6FF),
+            BillLearnColors.lightPurple,
+          ],
+          stops: [0.0, 0.52, 1.0],
         ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Colors.white, width: 1.4),
         boxShadow: [
           BoxShadow(
-            color: BillLearnColors.mainPurple.withValues(alpha: 0.12),
-            blurRadius: 22,
-            offset: const Offset(0, 12),
+            color: BillLearnColors.mainPurple.withValues(alpha: 0.14),
+            blurRadius: 24,
+            offset: const Offset(0, 14),
           ),
         ],
       ),
@@ -156,6 +161,8 @@ class _DetailHeroCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     expense.merchantName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: isRejected ? Colors.black45 : BillLearnColors.ink,
                       fontSize: 24,
@@ -250,7 +257,14 @@ class _InfoCard extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.035),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -751,7 +765,14 @@ class _FeedbackActions extends ConsumerWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.035),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),

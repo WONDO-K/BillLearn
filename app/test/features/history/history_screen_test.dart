@@ -100,7 +100,7 @@ void main() {
 
     expect(find.text('계좌이체 의심'), findsOneWidget);
     expect(find.text('확인 필요'), findsOneWidget);
-    expect(find.textContaining('실제 지출인지 확인해주세요'), findsOneWidget);
+    expect(find.textContaining('실제 지출 확인 필요'), findsOneWidget);
 
     await repository.dispose();
   });

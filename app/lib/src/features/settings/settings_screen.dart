@@ -18,7 +18,7 @@ class SettingsScreen extends ConsumerWidget {
     final rawNotifications = ref.watch(rawNotificationsProvider);
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 120),
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 120),
       children: [
         const _SettingsHeroCard(),
         const SizedBox(height: 16),
@@ -68,15 +68,20 @@ class _SettingsHeroCard extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Colors.white, BillLearnColors.lightPurple],
+          colors: [
+            Colors.white,
+            Color(0xFFF8F6FF),
+            BillLearnColors.lightPurple,
+          ],
+          stops: [0.0, 0.52, 1.0],
         ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Colors.white, width: 1.4),
         boxShadow: [
           BoxShadow(
-            color: BillLearnColors.mainPurple.withValues(alpha: 0.12),
-            blurRadius: 22,
-            offset: const Offset(0, 12),
+            color: BillLearnColors.mainPurple.withValues(alpha: 0.14),
+            blurRadius: 24,
+            offset: const Offset(0, 14),
           ),
         ],
       ),
@@ -155,6 +160,8 @@ class _PermissionCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             description,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: Colors.black54,
               fontSize: 13,
@@ -448,7 +455,14 @@ class _SoftCard extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.035),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Padding(padding: const EdgeInsets.all(16), child: child),
     );
